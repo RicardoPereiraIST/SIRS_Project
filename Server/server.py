@@ -8,17 +8,17 @@ users = {"test": "12345"}
 def login():
 	logged = False
 	while(logged == False):
-		username = raw_input("Username: ")
+		username = input("Username: ")
 		password = getpass.getpass("Password: ")
 
 		if username in users:
 			if password == users[username]:
-				print "Logged in"
+				print("Logged in")
 				logged = True
 			else:
-				print "Wrong credentials"
+				print("Wrong credentials")
 		else:
-			print "Wrong credentials"
+			print("Wrong credentials")
 
 
 if __name__ == "__main__":

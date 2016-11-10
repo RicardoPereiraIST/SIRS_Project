@@ -2,6 +2,9 @@ import getpass
 import socket
 import json
 import time
+import Crypto
+from Crypto.PublicKey import RSA
+import ast
 
 # Dictionary containing all users
 # - Key: Username
@@ -43,7 +46,18 @@ def createMessage():
 
 	json_data = json.dumps(data_to_send)
 
+	rsa(json_data)
+
 	return json_data
+
+def rsaEncrypt(message):
+	encrypted = publickey.encrypt(message, 32)
+	return encrypted
+
+def rsaDecrypt(message):
+	decrypted = key.decrypt(ast.literal_eval(str(message)))
+	return decrypted
+
 
 if __name__ == "__main__":
 	login()

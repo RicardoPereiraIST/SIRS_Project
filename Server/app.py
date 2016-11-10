@@ -33,8 +33,8 @@ def login():
 # the timestamp and a placeholder for a token
 def contactPhone():
 	s = socket.socket()
-	host = "localhost"
-	port = 1500
+	host = "192.168.1.127"
+	port = 6000
 
 	s.connect((host, port))
 	s.send(createMessage().encode())

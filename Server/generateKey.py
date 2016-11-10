@@ -7,9 +7,11 @@ def generateKey():
 	random_generator = Random.new().read
 	key = RSA.generate(1024, random_generator)
 	publickey = key.publickey()
-	f = open ('encryption.txt', 'w')
+	f = open ('Private_Key.key', 'w')
 	f.write(str(key.exportKey()))
-	f.write("\n")
+	f.close()
+
+	f = open ('Public_Key.key','w')
 	f.write(str(publickey.exportKey()))
 	f.close()
 

@@ -10,6 +10,8 @@ import ast
 # - Key: Username
 # - Value: Password
 users = {"test": "12345"}
+key = None
+publickey = None
 
 # Login code for a first step authentication
 def login():
@@ -46,9 +48,19 @@ def createMessage():
 
 	json_data = json.dumps(data_to_send)
 
-	rsa(json_data)
+	json_data = rsa(json_data)
 
 	return json_data
+
+def importKeys():
+	f = open('Private_Key.key', 'r')
+	s = f.read()
+	key = RSA.importKey(s)
+	f.close()
+	f = open ('Public_Key.key','r')
+	s = f.read()
+	publickey = RSA.importKey(s)
+	f.close()
 
 def rsaEncrypt(message):
 	encrypted = publickey.encrypt(message, 32)
@@ -60,5 +72,6 @@ def rsaDecrypt(message):
 
 
 if __name__ == "__main__":
+	importKeys()
 	login()
 	contactPhone()

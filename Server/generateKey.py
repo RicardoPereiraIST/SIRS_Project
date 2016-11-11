@@ -11,7 +11,7 @@ def generateKey():
 	f.write(str(key.exportKey()))
 	f.close()
 
-	f = open ('publlic.key','w')
+	f = open ('public.key','w')
 	f.write(str(publickey.exportKey()))
 	f.close()
 

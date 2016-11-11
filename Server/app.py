@@ -5,6 +5,7 @@ import time
 import Crypto
 from Crypto.PublicKey import RSA
 import ast
+import sys
 
 # Dictionary containing all users
 # - Key: Username
@@ -17,7 +18,10 @@ publickey = None
 def login():
 	logged = False
 	while(logged == False):
-		username = input("Username: ")
+		if sys.version_info[0] < 3:
+			username = raw_input("Username: ")
+		else:
+			username = input("Username: ")
 		password = getpass.getpass("Password: ")
 
 		if username in users:

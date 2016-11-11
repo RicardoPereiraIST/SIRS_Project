@@ -7,11 +7,11 @@ def generateKey():
 	random_generator = Random.new().read
 	key = RSA.generate(1024, random_generator)
 	publickey = key.publickey()
-	f = open ('private.key', 'w')
+	f = open ('mobileprivate.key', 'w')
 	f.write(str(key.exportKey()))
 	f.close()
 
-	f = open ('public.key','w')
+	f = open ('mobilepublic.key','w')
 	f.write(str(publickey.exportKey()))
 	f.close()
 

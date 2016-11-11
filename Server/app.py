@@ -57,11 +57,12 @@ def createMessage():
 	return json_data
 
 def importKeys():
-	f = open('Private_Key.key', 'r')
+	f = open('private.key', 'r')
 	s = f.read()
 	key = RSA.importKey(s)
 	f.close()
-	f = open ('Public_Key.key','r')
+	
+	f = open ('public.key','r')
 	s = f.read()
 	publickey = RSA.importKey(s)
 	f.close()

@@ -13,6 +13,8 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+import javax.crypto.Cipher;
+
 
 /**
  * Created by Diogo on 11/11/2016.
@@ -33,8 +35,7 @@ public class RSA {
         return s.hasNext() ? s.next() : "";
     }
 
-    public PrivateKey getPrivateKey() throws Exception{
-        String fileContent = readKeyFile("private.key");
+    public static PrivateKey getPrivateKey(String fileContent) throws Exception{
 
         String keyString = fileContent.replace("-----BEGIN RSA PRIVATE KEY-----", "")
                 .replace("-----END RSA PRIVATE KEY-----", "");
@@ -46,8 +47,7 @@ public class RSA {
         return key;
     }
 
-    public PublicKey getPublicKey() throws Exception{
-        String fileContent = readKeyFile("server_public.key");
+    public static PublicKey getPublicKey(String fileContent) throws Exception{
 
         String keyString = fileContent.replace("-----BEGIN PUBLIC KEY-----", "")
                 .replace("-----END PUBLIC KEY-----", "");
@@ -58,10 +58,5 @@ public class RSA {
 
         return key;
     }
-
-
-
-
-
 
 }

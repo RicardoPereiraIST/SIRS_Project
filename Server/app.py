@@ -54,12 +54,12 @@ def createMessage():
 	return rsaEncrypt(json_data)
 
 def importKeys():
-	f = open('private.key', 'r')
+	f = open('Keys/private_key_server.der', 'r')
 	s = f.read()
 	keys.append(RSA.importKey(s))
 	f.close()
 	
-	f = open ('public.key','r')
+	f = open ('Keys/public_key_android.der','r')
 	s = f.read()
 	keys.append(RSA.importKey(s))
 	f.close()

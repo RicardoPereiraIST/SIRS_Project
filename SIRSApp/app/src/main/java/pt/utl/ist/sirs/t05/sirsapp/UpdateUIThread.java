@@ -17,6 +17,10 @@ public class UpdateUIThread implements Runnable {
 
     @Override
     public void run(){
-        text.setText(msg + "\n");
+        try {
+            text.setText(msg + "\n");
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }

@@ -2,6 +2,7 @@ package pt.utl.ist.sirs.t05.sirsapp;
 
 import android.content.Context;
 import android.util.Base64;
+import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,13 +34,29 @@ public class RSA {
     }
 
     public PrivateKey getPrivateKey() throws Exception{
-        String key = readKeyFile("private.key");
-        return null;
+        String fileContent = readKeyFile("private.key");
+
+        String keyString = fileContent.replace("-----BEGIN RSA PRIVATE KEY-----", "")
+                .replace("-----END RSA PRIVATE KEY-----", "");
+
+        byte[] keyBytes = Base64.decode(keyString, Base64.DEFAULT);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+        PrivateKey key = KeyFactory.getInstance("RSA", "BC").generatePrivate(keySpec);
+
+        return key;
     }
 
     public PublicKey getPublicKey() throws Exception{
-        String key = readKeyFile("server_public.key");
-        return null;
+        String fileContent = readKeyFile("server_public.key");
+
+        String keyString = fileContent.replace("-----BEGIN PUBLIC KEY-----", "")
+                .replace("-----END PUBLIC KEY-----", "");
+
+        byte[] keyBytes = Base64.decode(keyString, Base64.DEFAULT);
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
+        PublicKey key = KeyFactory.getInstance("RSA").generatePublic(keySpec);
+
+        return key;
     }
 
 

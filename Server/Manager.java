@@ -100,8 +100,9 @@ public class Manager
 
       FileWriter fw = new FileWriter("Users.txt", true);
       BufferedWriter bw = new BufferedWriter(fw);
-      password = encrypt(password);
-      bw.write(username + " " + password);
+      String salt = generateSalt();
+      password = encrypt(password+salt);
+      bw.write(username + " " + salt + " " + password);
       bw.newLine();
       bw.close();
     }
@@ -117,7 +118,20 @@ public class Manager
     cript.reset();
     cript.update(password.getBytes("utf8"));
     String hex = String.format("%040x", new BigInteger(1,cript.digest()));
+    for(int i = 0; i<2; i++){
+      cript.reset();
+      cript.update(hex.getBytes("utf8"));
+      hex = String.format("%040x", new BigInteger(1,cript.digest()));
+    }
     return hex;
+  }
+
+  public String generateSalt(){
+    final Random r = new SecureRandom();
+    byte[] salt = new byte[32];
+    r.nextBytes(salt);
+    String saltString = new String(salt);
+    return saltString;
   }
 
   public boolean login() throws Exception{
@@ -126,7 +140,7 @@ public class Manager
     String username = console.readLine("Enter your username: ");
     char passwordArray[] = console.readPassword("Enter your password: ");
     String password = new String(passwordArray);
-    password = encrypt(password);
+    //password = encrypt(password);
 
     if(checkCredentials(username, password)){
       for(int i = 0; i<users.size(); i++){
@@ -227,7 +241,7 @@ public class Manager
       String line = br.readLine();
       while(line != null){
         String[] parts = line.split(" ");
-        if(parts[0].equals(username) && parts[1].equals(password)){
+        if(parts[0].equals(username) && parts[2].equals(encrypt(password+parts[1]))){
           System.out.println("You are logged in!");
           return true;
         }

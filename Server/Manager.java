@@ -29,6 +29,47 @@ public class Manager
     }
   }
 
+  public void init(){
+    Console console = System.console();
+    System.out.println("Welcome to our filesystem!");
+    System.out.println("There are 3 commands:\nRegister\nLogin\nExit");
+    String command = console.readLine("Enter your command: ");
+    if(command.matches("[Ll][Oo][Gg][Ii][Nn]")){
+        if(login()){
+            display();
+        }
+        else{
+            init();
+        }
+    }
+    else if(command.matches("[Rr][Ee][Gg][Ii][Ss][Tt][Ee][Rr]")){
+        boolean registed = registration();
+        while(!registed)
+            registed = registration();
+        init();
+    }
+    else if(command.matches("[Ee][Xx][Ii][Tt]"))
+        exit();
+  }
+
+  public void display(){
+    Console console = System.console();
+    System.out.println("There are 4 commands:\nCreate\nRead\nWrite\nExit");
+    String command = console.readLine("Enter your command: ");
+    if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]")){
+      createFile();
+      display();
+    }
+    else if(command.matches("[Rr][Ee][Aa][Dd]")){
+
+    }
+    else if(command.matches("[Ww][Rr][Ii][Tt][Ee]")){
+
+    }
+    else if(command.matches("[Ee][Xx][Ii][Tt]"))
+        exit();
+  }
+
   public boolean registration ()
   {
     System.out.println("New User Registration");

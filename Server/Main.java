@@ -2,7 +2,7 @@ import java.io.*;
 
 public class Main {
 	
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
         Console console = System.console();
         Manager manager = new Manager();
         System.out.println("Welcome to our filesystem!");
@@ -17,12 +17,10 @@ public class Main {
             }
         }
         else if(command.matches("[Rr][Ee][Gg][Ii][Ss][Tt][Ee][Rr]")){
-            if(!manager.registration()){
-                manager.registration();
-            }
-            else{
-                main(args);
-            }
+            boolean registed = manager.registration();
+            while(!registed)
+                registed = manager.registration();
+            main(args);
         }
         else if(command.matches("[Ee][Xx][Ii][Tt]"))
             manager.exit();

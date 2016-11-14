@@ -79,7 +79,7 @@ public class Manager
     return hex;*/
   }
 
-  public boolean login(){
+  public boolean login() throws Exception{
     System.out.println("Enter your credentials.");
     Console console = System.console();
     String username = console.readLine("Enter your username: ");

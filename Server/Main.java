@@ -28,13 +28,14 @@ public class Main {
 
     }
 
-    public static void display(){
+    public static void display() throws Exception{
         Manager manager = new Manager();
         Console console = System.console();
         System.out.println("There are 4 commands:\nCreate\nRead\nWrite\nExit");
         String command = console.readLine("Enter your command: ");
         if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]")){
-
+            manager.createFile();
+            display();
         }
         else if(command.matches("[Rr][Ee][Aa][Dd]")){
 

@@ -7,6 +7,7 @@ import java.lang.*;
 public class Manager
 {
   private List<User> users = new ArrayList<User>();
+  private User curUser;
 
   public Manager(){
     File f = new File("Users.txt");
@@ -45,6 +46,9 @@ public class Manager
       }
       User u = new User(username);
       users.add(u);
+      File f = new File("Files/"+username);
+      if(!f.exists())
+        f.mkdir();
 
       FileWriter fw = new FileWriter("Users.txt", true);
       BufferedWriter bw = new BufferedWriter(fw);
@@ -66,17 +70,6 @@ public class Manager
     cript.update(password.getBytes("utf8"));
     String hex = String.format("%040x", new BigInteger(1,cript.digest()));
     return hex;
-    /*try{
-      MessageDigest cript = MessageDigest.getInstance("SHA-1");
-      cript.reset();
-      cript.update(password.getBytes("utf8"));
-      String hex = String.format("%040x", new BigInteger(1,cript.digest()));
-      return hex;
-    }
-    catch(Exception e){
-      e.printStackTrace();
-    }
-    return hex;*/
   }
 
   public boolean login() throws Exception{
@@ -87,8 +80,14 @@ public class Manager
     String password = new String(passwordArray);
     password = encrypt(password);
 
-    if(checkCredentials(username, password))
+    if(checkCredentials(username, password)){
+      for(int i = 0; i<users.size(); i++){
+        if(users.get(i).getUsername().equals(username)){
+          curUser = users.get(i);
+        }
+      }
       return true;
+    }
 
     else{
       System.out.println("Try again");
@@ -96,8 +95,14 @@ public class Manager
     }    
   }
 
-  public void displayFileSystem(User user){
-
+  public void createFile() throws Exception{
+    Console console = System.console();
+    String fileName = console.readLine("Enter filename: ");
+    String[] parts = fileName.split(".");
+    System.out.println(curUser.getUsername());
+    File file = new File("Files/" + curUser.getUsername() + "/" + parts[0] + ".txt");
+    file.createNewFile();
+    //FileWriter fw = new FileWriter(fileNameTxt);
   }
 
   public void exit(){

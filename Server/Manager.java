@@ -8,6 +8,8 @@ import java.security.spec.*;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 
 public class Manager
@@ -163,16 +165,13 @@ public class Manager
   }
 
   public void encryptFile(File f) throws Exception{
-    /*SecureRandom random = new SecureRandom();
-    byte[] ivBytes = new byte[32];
+    SecureRandom random = new SecureRandom();
+    byte[] ivBytes = new byte[16];
     random.nextBytes(ivBytes);
-    IvParameterSpec iv = new IvParameterSpec(ivBytes);*/
+    IvParameterSpec iv = new IvParameterSpec(ivBytes);
 
-    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
-    cipher.init(Cipher.ENCRYPT_MODE, key);
-
-
-    System.out.println("lala");
+    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    cipher.init(Cipher.ENCRYPT_MODE, key, iv);
 
     BufferedReader br = new BufferedReader(new FileReader(f));
 
@@ -184,13 +183,53 @@ public class Manager
       stringBuffer.append(line).append("\n");
     }
 
-    System.out.println("lala");
     byte[] encryptedText = cipher.doFinal(stringBuffer.toString().getBytes());
-    System.out.println("lala");
     br.close();
+    System.out.println(encryptedText.length);
     FileWriter fw = new FileWriter(f, false);
     BufferedWriter bw = new BufferedWriter(fw);
     bw.write(encryptedText.toString());
+    bw.newLine();
+    bw.close();
+  }
+
+  public void decryptFile(File f) throws Exception{
+    SecureRandom random = new SecureRandom();
+    byte[] ivBytes = new byte[16];
+    random.nextBytes(ivBytes);
+    IvParameterSpec iv = new IvParameterSpec(ivBytes);
+
+    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    cipher.init(Cipher.DECRYPT_MODE, key, iv);
+
+    BufferedReader br = new BufferedReader(new FileReader(f));
+
+
+    StringBuffer stringBuffer = new StringBuffer();
+    String line = null;
+
+    while((line = br.readLine())!=null){
+      stringBuffer.append(line).append("\n");
+    }
+
+    List<String> list = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
+    String a = "";
+    for(String b : list)
+      a+=b+"\n";
+
+    byte[] data = Files.readAllBytes(f.toPath());
+
+    System.out.println(data.length);
+    System.out.println(a.length());
+    System.out.println(stringBuffer.length());
+    System.out.println(stringBuffer.toString().length());
+    byte[] decrypte = stringBuffer.toString().getBytes();
+    System.out.println(decrypte.length);
+    String decryptedText = cipher.doFinal(stringBuffer.toString().getBytes()).toString(); //new String(cipher.doFinal(stringBuffer.toString().getBytes()), StandardCharsets.UTF_8);
+    br.close();
+    FileWriter fw = new FileWriter(f, false);
+    BufferedWriter bw = new BufferedWriter(fw);
+    bw.write(decryptedText.toString());
     bw.newLine();
     bw.close();
   }
@@ -290,6 +329,7 @@ public class Manager
       readFile();
     }
     else{
+      decryptFile(file);
       BufferedReader br = new BufferedReader(new FileReader(file));
       StringBuilder sb = new StringBuilder();
       String line = br.readLine();
@@ -297,6 +337,7 @@ public class Manager
         System.out.println(line);
         line = br.readLine();
       }
+      encryptFile(file);
     }
     display();
   }
@@ -312,7 +353,7 @@ public class Manager
   
   public SecretKey generateEncryptionKey(String password, byte[] salt) throws Exception{
 	  SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-	  KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 256);
+	  KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 128);
 	  SecretKey tmp = factory.generateSecret(spec);
 	  SecretKey secret = new SecretKeySpec(tmp.getEncoded(), "AES"); 
 	  return secret;

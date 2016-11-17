@@ -17,6 +17,7 @@ public class Manager
   private List<User> users = new ArrayList<User>();
   private User curUser;
   private SecretKey key;
+  private IvParameterSpec iv;
 
   public Manager(){
     File dir = new File("Files");
@@ -34,6 +35,29 @@ public class Manager
           users.add(u);
           line = br.readLine();
         }
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
+    }
+
+    File f2 = new File(".Iv.txt");
+    if(!f2.exists()){
+      SecureRandom random = new SecureRandom();
+      byte[] ivBytes = new byte[16];
+      random.nextBytes(ivBytes);
+      iv = new IvParameterSpec(ivBytes);
+      try{
+        Files.write(f2.toPath(), ivBytes);
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
+    }
+    else{
+      try{
+        byte[] ivBytes = Files.readAllBytes(f2.toPath());
+        iv = new IvParameterSpec(ivBytes);
       }
       catch(Exception e){
         e.printStackTrace();
@@ -165,11 +189,6 @@ public class Manager
   }
 
   public void encryptFile(File f) throws Exception{
-    SecureRandom random = new SecureRandom();
-    byte[] ivBytes = new byte[16];
-    random.nextBytes(ivBytes);
-    IvParameterSpec iv = new IvParameterSpec(ivBytes);
-
     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
     cipher.init(Cipher.ENCRYPT_MODE, key, iv);
 
@@ -185,51 +204,19 @@ public class Manager
 
     byte[] encryptedText = cipher.doFinal(stringBuffer.toString().getBytes());
     br.close();
-    System.out.println(encryptedText.length);
-    FileWriter fw = new FileWriter(f, false);
-    BufferedWriter bw = new BufferedWriter(fw);
-    bw.write(encryptedText.toString());
-    bw.newLine();
-    bw.close();
+    Files.write(f.toPath(), encryptedText);
   }
 
   public void decryptFile(File f) throws Exception{
-    SecureRandom random = new SecureRandom();
-    byte[] ivBytes = new byte[16];
-    random.nextBytes(ivBytes);
-    IvParameterSpec iv = new IvParameterSpec(ivBytes);
-
     Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
     cipher.init(Cipher.DECRYPT_MODE, key, iv);
 
-    BufferedReader br = new BufferedReader(new FileReader(f));
-
-
-    StringBuffer stringBuffer = new StringBuffer();
-    String line = null;
-
-    while((line = br.readLine())!=null){
-      stringBuffer.append(line).append("\n");
-    }
-
-    List<String> list = Files.readAllLines(f.toPath(), StandardCharsets.UTF_8);
-    String a = "";
-    for(String b : list)
-      a+=b+"\n";
-
     byte[] data = Files.readAllBytes(f.toPath());
 
-    System.out.println(data.length);
-    System.out.println(a.length());
-    System.out.println(stringBuffer.length());
-    System.out.println(stringBuffer.toString().length());
-    byte[] decrypte = stringBuffer.toString().getBytes();
-    System.out.println(decrypte.length);
-    String decryptedText = cipher.doFinal(stringBuffer.toString().getBytes()).toString(); //new String(cipher.doFinal(stringBuffer.toString().getBytes()), StandardCharsets.UTF_8);
-    br.close();
+    String decryptedText = new String(cipher.doFinal(data), "UTF-8");
     FileWriter fw = new FileWriter(f, false);
     BufferedWriter bw = new BufferedWriter(fw);
-    bw.write(decryptedText.toString());
+    bw.write(decryptedText);
     bw.newLine();
     bw.close();
   }

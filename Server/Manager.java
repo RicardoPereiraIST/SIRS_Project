@@ -72,7 +72,14 @@ public class Manager
     String command = console.readLine("Enter your command: ");
     if(command.matches("[Ll][Oo][Gg][Ii][Nn]") || command.matches("[Ll]")){
         if(login()){
-            display();
+          File dir = new File("Files/" + curUser.getUsername() + "/");
+          if(dir.exists())
+            for(File f : dir.listFiles())
+              decryptFile(f);
+          else{
+            //createDir
+          }
+          display();
         }
         else{
             init();
@@ -84,8 +91,10 @@ public class Manager
             registed = registration();
         init();
     }
-    else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]"))
-        exit();
+    else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]")){
+      logout();
+      exit();
+    }
     else{
       System.out.println("Unknown Command. Try again");
       init();
@@ -108,14 +117,24 @@ public class Manager
     }
     else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]"))
       pairing();
-    else if(command.matches("[Ll][Oo][Gg][Oo][Uu][Tt]") || command.matches("[Ll]"))
+    else if(command.matches("[Ll][Oo][Gg][Oo][Uu][Tt]") || command.matches("[Ll]")){
+      logout();
       init();
-    else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]"))
+    }
+    else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]")){
+      logout();
       exit();
+    }
     else{
       System.out.println("Unknown Command. Try again");
       display();
     }
+  }
+
+  public void logout() throws Exception{
+    File dir = new File("Files/" + curUser.getUsername() + "/");
+      for(File f : dir.listFiles())
+        encryptFile(f);
   }
 
   public boolean registration ()
@@ -217,7 +236,6 @@ public class Manager
     FileWriter fw = new FileWriter(f, false);
     BufferedWriter bw = new BufferedWriter(fw);
     bw.write(decryptedText);
-    bw.newLine();
     bw.close();
   }
 
@@ -296,7 +314,6 @@ public class Manager
       BufferedWriter bw = new BufferedWriter(fw);
       bw.write(content);
       bw.close();
-      encryptFile(file);
       System.out.println("File written");
       display();
     }
@@ -316,7 +333,6 @@ public class Manager
       readFile();
     }
     else{
-      decryptFile(file);
       BufferedReader br = new BufferedReader(new FileReader(file));
       StringBuilder sb = new StringBuilder();
       String line = br.readLine();
@@ -324,7 +340,6 @@ public class Manager
         System.out.println(line);
         line = br.readLine();
       }
-      encryptFile(file);
     }
     display();
   }

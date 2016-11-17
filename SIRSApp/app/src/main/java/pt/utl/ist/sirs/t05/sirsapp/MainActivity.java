@@ -15,6 +15,7 @@ import java.net.Socket;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -43,10 +44,14 @@ public class MainActivity extends AppCompatActivity {
 
                 String plaintext = "banana";
                 try {
-                    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
-                    cipher.init(Cipher.ENCRYPT_MODE, secret);
+
+                    String initVector = "RandomInitVector";
+                    IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+
+                    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+                    cipher.init(Cipher.ENCRYPT_MODE, secret, iv);
                     byte[] ciphertext = cipher.doFinal(plaintext.getBytes());
-                    cipher.init(Cipher.DECRYPT_MODE, secret);
+                    cipher.init(Cipher.DECRYPT_MODE, secret, iv);
                     String result = new String(cipher.doFinal(ciphertext), "UTF-8");
                     Log.w("RESULT", result);
                 }catch (Exception e){

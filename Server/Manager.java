@@ -7,13 +7,14 @@ import javax.crypto.*;
 import java.security.spec.*;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.*;
 
 
 public class Manager
 {
   private List<User> users = new ArrayList<User>();
   private User curUser;
-  private String curPassword;
+  private SecretKey key;
 
   public Manager(){
     File dir = new File("Files");
@@ -161,13 +162,45 @@ public class Manager
     return saltString;
   }
 
+  public void encryptFile(File f) throws Exception{
+    /*SecureRandom random = new SecureRandom();
+    byte[] ivBytes = new byte[32];
+    random.nextBytes(ivBytes);
+    IvParameterSpec iv = new IvParameterSpec(ivBytes);*/
+
+    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
+    cipher.init(Cipher.ENCRYPT_MODE, key);
+
+
+    System.out.println("lala");
+
+    BufferedReader br = new BufferedReader(new FileReader(f));
+
+
+    StringBuffer stringBuffer = new StringBuffer();
+    String line = null;
+
+    while((line = br.readLine())!=null){
+      stringBuffer.append(line).append("\n");
+    }
+
+    System.out.println("lala");
+    byte[] encryptedText = cipher.doFinal(stringBuffer.toString().getBytes());
+    System.out.println("lala");
+    br.close();
+    FileWriter fw = new FileWriter(f, false);
+    BufferedWriter bw = new BufferedWriter(fw);
+    bw.write(encryptedText.toString());
+    bw.newLine();
+    bw.close();
+  }
+
   public boolean login() throws Exception{
     System.out.println("Enter your credentials.");
     Console console = System.console();
     String username = console.readLine("Enter your username: ");
     char passwordArray[] = console.readPassword("Enter your password: ");
     String password = new String(passwordArray);
-    //password = encrypt(password);
 
     if(checkCredentials(username, password)){
       for(int i = 0; i<users.size(); i++){
@@ -236,8 +269,8 @@ public class Manager
       FileWriter fw = new FileWriter(file, append);
       BufferedWriter bw = new BufferedWriter(fw);
       bw.write(content);
-      bw.newLine();
       bw.close();
+      encryptFile(file);
       System.out.println("File written");
       display();
     }
@@ -294,7 +327,7 @@ public class Manager
         String[] parts = line.split(" ");
         if(parts[0].equals(username) && parts[2].equals(encrypt(password+parts[1]))){   
         	byte[] salt = parts[1].getBytes();
-        	SecretKey key = generateEncryptionKey(password, salt);
+        	key = generateEncryptionKey(password, salt);
         	System.out.println("You are logged in!");
         	return true;
         }

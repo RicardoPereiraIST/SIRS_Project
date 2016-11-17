@@ -8,7 +8,6 @@ public class Manager
 {
   private List<User> users = new ArrayList<User>();
   private User curUser;
-  private String curPassword;
 
   public Manager(){
     File dir = new File("Files");
@@ -162,7 +161,6 @@ public class Manager
     String username = console.readLine("Enter your username: ");
     char passwordArray[] = console.readPassword("Enter your password: ");
     String password = new String(passwordArray);
-    //password = encrypt(password);
 
     if(checkCredentials(username, password)){
       for(int i = 0; i<users.size(); i++){

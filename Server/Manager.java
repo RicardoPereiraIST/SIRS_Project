@@ -3,11 +3,17 @@ import java.util.*;
 import java.security.*;
 import java.math.*;
 import java.lang.*;
+import javax.crypto.*;
+import java.security.spec.*;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.PBEKeySpec;
+
 
 public class Manager
 {
   private List<User> users = new ArrayList<User>();
   private User curUser;
+  private String curPassword;
 
   public Manager(){
     File dir = new File("Files");
@@ -161,6 +167,7 @@ public class Manager
     String username = console.readLine("Enter your username: ");
     char passwordArray[] = console.readPassword("Enter your password: ");
     String password = new String(passwordArray);
+    //password = encrypt(password);
 
     if(checkCredentials(username, password)){
       for(int i = 0; i<users.size(); i++){
@@ -269,17 +276,27 @@ public class Manager
   public void exit(){
     System.exit(0);
   }
+  
+  public SecretKey generateEncryptionKey(String password, byte[] salt) throws Exception{
+	  SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+	  KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 256);
+	  SecretKey tmp = factory.generateSecret(spec);
+	  SecretKey secret = new SecretKeySpec(tmp.getEncoded(), "AES"); 
+	  return secret;
+  }
 
-  public boolean checkCredentials(String username, String password){
+  public boolean checkCredentials(String username, String password) throws Exception{
     try{
       BufferedReader br = new BufferedReader(new FileReader(".Users.txt"));
       StringBuilder sb = new StringBuilder();
       String line = br.readLine();
       while(line != null){
         String[] parts = line.split(" ");
-        if(parts[0].equals(username) && parts[2].equals(encrypt(password+parts[1]))){
-          System.out.println("You are logged in!");
-          return true;
+        if(parts[0].equals(username) && parts[2].equals(encrypt(password+parts[1]))){   
+        	byte[] salt = parts[1].getBytes();
+        	SecretKey key = generateEncryptionKey(password, salt);
+        	System.out.println("You are logged in!");
+        	return true;
         }
         line = br.readLine();
       }

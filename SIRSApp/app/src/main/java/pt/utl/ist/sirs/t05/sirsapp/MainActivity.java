@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,7 +38,21 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 Key key = new Key("espargueteabolonhesa");
+                SecretKey secret = key.getKey();
                 Log.w(TAG, Base64.encodeToString(key.getKey().getEncoded(), Base64.DEFAULT));
+
+                String plaintext = "banana";
+                try {
+                    Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING");
+                    cipher.init(Cipher.ENCRYPT_MODE, secret);
+                    byte[] ciphertext = cipher.doFinal(plaintext.getBytes());
+                    cipher.init(Cipher.DECRYPT_MODE, secret);
+                    String result = new String(cipher.doFinal(ciphertext), "UTF-8");
+                    Log.w("RESULT", result);
+                }catch (Exception e){
+                    Log.w(TAG, e.getMessage());
+                }
+
 
                 Log.w(TAG, "Connecting to " + serverName + " on port " + port);
                 Socket client = new Socket(serverName, port);

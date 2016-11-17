@@ -2,6 +2,7 @@ package pt.utl.ist.sirs.t05.sirsapp;
 
 import android.util.Log;
 
+import java.nio.charset.StandardCharsets;
 import java.security.spec.KeySpec;
 import java.util.Random;
 
@@ -21,9 +22,8 @@ public class Key {
     public Key(String password){
         try {
 
-            byte[] salt = new byte[64];
-            Random rnd = new Random();
-            rnd.nextBytes(salt);
+            String salt_string = "client_6000_saltclient_6000_salt";
+            byte[] salt = salt_string.getBytes();
 
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 

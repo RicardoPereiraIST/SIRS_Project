@@ -8,15 +8,16 @@ public class Manager
 {
   private List<User> users = new ArrayList<User>();
   private User curUser;
+  private String curPassword;
 
   public Manager(){
     File dir = new File("Files");
     if(!dir.exists())
       dir.mkdir();
-    File f = new File("Users.txt");
+    File f = new File(".Users.txt");
     if(f.exists()){
       try{
-        BufferedReader br = new BufferedReader(new FileReader("Users.txt"));
+        BufferedReader br = new BufferedReader(new FileReader(".Users.txt"));
         StringBuilder sb = new StringBuilder();
         String line = br.readLine();
         while(line != null){
@@ -37,7 +38,7 @@ public class Manager
     System.out.println("Welcome to our filesystem!");
     System.out.println("There are 3 commands:\nRegister\nLogin\nExit");
     String command = console.readLine("Enter your command: ");
-    if(command.matches("[Ll][Oo][Gg][Ii][Nn]")){
+    if(command.matches("[Ll][Oo][Gg][Ii][Nn]") || command.matches("[Ll]")){
         if(login()){
             display();
         }
@@ -45,36 +46,44 @@ public class Manager
             init();
         }
     }
-    else if(command.matches("[Rr][Ee][Gg][Ii][Ss][Tt][Ee][Rr]")){
+    else if(command.matches("[Rr][Ee][Gg][Ii][Ss][Tt][Ee][Rr]") || command.matches("[Rr]")){
         boolean registed = registration();
         while(!registed)
             registed = registration();
         init();
     }
-    else if(command.matches("[Ee][Xx][Ii][Tt]"))
+    else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]"))
         exit();
+    else{
+      System.out.println("Unknown Command. Try again");
+      init();
+    }
   }
 
   public void display() throws Exception{
     Console console = System.console();
     System.out.println("There are 6 commands:\nCreate\nRead\nWrite\nPairing\nLogout\nExit");
     String command = console.readLine("Enter your command: ");
-    if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]")){
+    if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]") || command.matches("[Cc]")){
       createFile();
       display();
     }
-    else if(command.matches("[Rr][Ee][Aa][Dd]")){
+    else if(command.matches("[Rr][Ee][Aa][Dd]") || command.matches("[Rr]")){
       readFile();
     }
-    else if(command.matches("[Ww][Rr][Ii][Tt][Ee]")){
+    else if(command.matches("[Ww][Rr][Ii][Tt][Ee]") || command.matches("[Ww]")){
       writeFile();
     }
-    else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]"))
+    else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]"))
       pairing();
-    else if(command.matches("[Ll][Oo][Gg][Oo][Uu][Tt]"))
+    else if(command.matches("[Ll][Oo][Gg][Oo][Uu][Tt]") || command.matches("[Ll]"))
       init();
-    else if(command.matches("[Ee][Xx][Ii][Tt]"))
+    else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]"))
       exit();
+    else{
+      System.out.println("Unknown Command. Try again");
+      display();
+    }
   }
 
   public boolean registration ()
@@ -98,7 +107,7 @@ public class Manager
       if(!f.exists())
         f.mkdir();
 
-      FileWriter fw = new FileWriter("Users.txt", true);
+      FileWriter fw = new FileWriter(".Users.txt", true);
       BufferedWriter bw = new BufferedWriter(fw);
       String salt = generateSalt();
       password = encrypt(password+salt);
@@ -126,11 +135,24 @@ public class Manager
     return hex;
   }
 
-  public String generateSalt(){
+  public String generateSalt() throws Exception{
     final Random r = new SecureRandom();
     byte[] salt = new byte[32];
     r.nextBytes(salt);
     String saltString = new String(salt);
+
+    File f = new File(".Users.txt");
+    BufferedReader br = new BufferedReader(new FileReader(f));
+    StringBuilder sb = new StringBuilder();
+    String line = br.readLine();
+    while(line != null){
+      String[] parts = line.split(" ");
+      if(parts[1].equals(saltString)){
+        return generateSalt();
+      }
+      line = br.readLine();
+    }
+
     return saltString;
   }
 
@@ -166,8 +188,21 @@ public class Manager
     System.out.println("File created");
   }
 
+  public void listFiles() throws Exception{
+    File dir = new File("Files/" + curUser.getUsername() + "/");
+    if(dir.list().length==0){
+      System.out.println("You don't have files created");
+      display();
+    }
+
+    System.out.println("You have these files:");
+    for(String file : dir.list())
+      System.out.println(file);
+  }
+
   public void writeFile() throws Exception{
     Console console = System.console();
+    listFiles();
     String fileName = console.readLine("What file do you want to write to?\n");
     String[] parts = fileName.split("\\.");
     fileName = parts[0]+".txt";
@@ -205,6 +240,9 @@ public class Manager
 
   public void readFile() throws Exception{
     Console console = System.console();
+    
+    listFiles();
+
     String fileName = console.readLine("What file do you want to read?\n");
     String[] parts = fileName.split("\\.");
     fileName = parts[0]+".txt";
@@ -236,7 +274,7 @@ public class Manager
 
   public boolean checkCredentials(String username, String password){
     try{
-      BufferedReader br = new BufferedReader(new FileReader("Users.txt"));
+      BufferedReader br = new BufferedReader(new FileReader(".Users.txt"));
       StringBuilder sb = new StringBuilder();
       String line = br.readLine();
       while(line != null){

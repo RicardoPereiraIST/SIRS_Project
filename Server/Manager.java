@@ -126,9 +126,12 @@ public class Manager
   }
 
   public void logout() throws Exception{
-    File dir = new File("Files/" + curUser.getUsername() + "/");
-      for(File f : dir.listFiles())
-        crypto.encryptFile(f, key, iv);
+    if(curUser != null){
+      File dir = new File("Files/" + curUser.getUsername() + "/");
+        for(File f : dir.listFiles())
+          crypto.encryptFile(f, key, iv);
+    }
+    curUser = null;
   }
 
   public boolean registration (){
@@ -195,6 +198,7 @@ public class Manager
     String[] parts = fileName.split("\\.");
     File file = new File("Files/" + curUser.getUsername() + "/" + parts[0] + ".txt");
     file.createNewFile();
+    curUser.addFile(file.getName());
     System.out.println("File created");
   }
 

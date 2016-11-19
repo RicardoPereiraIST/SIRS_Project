@@ -2,13 +2,11 @@ import java.io.*;
 import java.util.*;
 import java.security.*;
 import java.math.*;
-import java.lang.*;
 import javax.crypto.*;
 import java.security.spec.*;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 
@@ -27,7 +25,6 @@ public class Manager
     if(f.exists()){
       try{
         BufferedReader br = new BufferedReader(new FileReader(".Users.txt"));
-        StringBuilder sb = new StringBuilder();
         String line = br.readLine();
         while(line != null){
           String[] parts = line.split(" ");
@@ -35,6 +32,7 @@ public class Manager
           users.add(u);
           line = br.readLine();
         }
+        br.close(); 
       }
       catch(Exception e){
         e.printStackTrace();
@@ -187,24 +185,24 @@ public class Manager
   }
 
   public String generateSalt() throws Exception{
-    final Random r = new SecureRandom();
-    byte[] salt = new byte[32];
-    r.nextBytes(salt);
-    String saltString = new String(salt);
-
+    SecureRandom r = new SecureRandom();
+    String salt = new BigInteger(130, r).toString(32);
+      
     File f = new File(".Users.txt");
     BufferedReader br = new BufferedReader(new FileReader(f));
-    StringBuilder sb = new StringBuilder();
+
     String line = br.readLine();
     while(line != null){
       String[] parts = line.split(" ");
-      if(parts[1].equals(saltString)){
+      if(parts[1].equals(salt)){
+    	br.close();
         return generateSalt();
       }
       line = br.readLine();
     }
+    br.close();
 
-    return saltString;
+    return salt;
   }
 
   public void encryptFile(File f) throws Exception{

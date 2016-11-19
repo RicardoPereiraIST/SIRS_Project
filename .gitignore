@@ -39,8 +39,12 @@ captures/
 # Keystore files
 *.jks
 
+## Specific Project Files ##
 # User/password file
 .Users.txt
 
-# Files folder
+# UserFiles folder
 Files/
+
+# .Iv file
+.Iv.txt

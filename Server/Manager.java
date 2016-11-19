@@ -1,14 +1,9 @@
 import java.io.*;
 import java.util.*;
 import java.security.*;
-import java.math.*;
 import javax.crypto.*;
-import java.security.spec.*;
-import javax.crypto.spec.SecretKeySpec;
-import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.*;
 import java.nio.file.Files;
-
 
 public class Manager
 {
@@ -16,6 +11,7 @@ public class Manager
   private User curUser;
   private SecretKey key;
   private IvParameterSpec iv;
+  private Crypto crypto = new Crypto();
 
   public Manager(){
     File dir = new File("Files");
@@ -73,7 +69,7 @@ public class Manager
           File dir = new File("Files/" + curUser.getUsername() + "/");
           if(dir.exists())
             for(File f : dir.listFiles())
-              decryptFile(f);
+              crypto.decryptFile(f, key, iv);
           else{
             //createDir
           }
@@ -132,11 +128,10 @@ public class Manager
   public void logout() throws Exception{
     File dir = new File("Files/" + curUser.getUsername() + "/");
       for(File f : dir.listFiles())
-        encryptFile(f);
+        crypto.encryptFile(f, key, iv);
   }
 
-  public boolean registration ()
-  {
+  public boolean registration (){
     System.out.println("New User Registration");
     Console console = System.console();
     String username = console.readLine("Enter your username: ");
@@ -158,8 +153,8 @@ public class Manager
 
       FileWriter fw = new FileWriter(".Users.txt", true);
       BufferedWriter bw = new BufferedWriter(fw);
-      String salt = generateSalt();
-      password = encrypt(password+salt);
+      String salt = crypto.generateSalt();
+      password = crypto.encryptPassword(password+salt);
       bw.write(username + " " + salt + " " + password);
       bw.newLine();
       bw.close();
@@ -171,71 +166,6 @@ public class Manager
     return true;
   }
 
-  public String encrypt(String password) throws Exception{
-    MessageDigest cript = MessageDigest.getInstance("SHA-1");
-    cript.reset();
-    cript.update(password.getBytes("utf8"));
-    String hex = String.format("%040x", new BigInteger(1,cript.digest()));
-    for(int i = 0; i<2; i++){
-      cript.reset();
-      cript.update(hex.getBytes("utf8"));
-      hex = String.format("%040x", new BigInteger(1,cript.digest()));
-    }
-    return hex;
-  }
-
-  public String generateSalt() throws Exception{
-    SecureRandom r = new SecureRandom();
-    String salt = new BigInteger(130, r).toString(32);
-      
-    File f = new File(".Users.txt");
-    BufferedReader br = new BufferedReader(new FileReader(f));
-
-    String line = br.readLine();
-    while(line != null){
-      String[] parts = line.split(" ");
-      if(parts[1].equals(salt)){
-    	br.close();
-        return generateSalt();
-      }
-      line = br.readLine();
-    }
-    br.close();
-
-    return salt;
-  }
-
-  public void encryptFile(File f) throws Exception{
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-
-    BufferedReader br = new BufferedReader(new FileReader(f));
-
-
-    StringBuffer stringBuffer = new StringBuffer();
-    String line = null;
-
-    while((line = br.readLine())!=null){
-      stringBuffer.append(line).append("\n");
-    }
-
-    byte[] encryptedText = cipher.doFinal(stringBuffer.toString().getBytes());
-    br.close();
-    Files.write(f.toPath(), encryptedText);
-  }
-
-  public void decryptFile(File f) throws Exception{
-    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-    cipher.init(Cipher.DECRYPT_MODE, key, iv);
-
-    byte[] data = Files.readAllBytes(f.toPath());
-
-    String decryptedText = new String(cipher.doFinal(data), "UTF-8");
-    FileWriter fw = new FileWriter(f, false);
-    BufferedWriter bw = new BufferedWriter(fw);
-    bw.write(decryptedText);
-    bw.close();
-  }
 
   public boolean login() throws Exception{
     System.out.println("Enter your credentials.");
@@ -332,12 +262,13 @@ public class Manager
     }
     else{
       BufferedReader br = new BufferedReader(new FileReader(file));
-      StringBuilder sb = new StringBuilder();
+
       String line = br.readLine();
       while(line != null){
         System.out.println(line);
         line = br.readLine();
       }
+      br.close();
     }
     display();
   }
@@ -350,30 +281,25 @@ public class Manager
   public void exit(){
     System.exit(0);
   }
-  
-  public SecretKey generateEncryptionKey(String password, byte[] salt) throws Exception{
-	  SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
-	  KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 1024, 128);
-	  SecretKey tmp = factory.generateSecret(spec);
-	  SecretKey secret = new SecretKeySpec(tmp.getEncoded(), "AES"); 
-	  return secret;
-  }
+ 
 
   public boolean checkCredentials(String username, String password) throws Exception{
     try{
       BufferedReader br = new BufferedReader(new FileReader(".Users.txt"));
-      StringBuilder sb = new StringBuilder();
       String line = br.readLine();
+
       while(line != null){
         String[] parts = line.split(" ");
-        if(parts[0].equals(username) && parts[2].equals(encrypt(password+parts[1]))){   
+        if(parts[0].equals(username) && parts[2].equals(crypto.encryptPassword(password+parts[1]))){   
         	byte[] salt = parts[1].getBytes();
-        	key = generateEncryptionKey(password, salt);
+        	key = crypto.generateEncryptionKey(password, salt);
         	System.out.println("You are logged in!");
+        	br.close();
         	return true;
         }
         line = br.readLine();
       }
+      br.close();
       System.out.println("Wrong Credentials!");
     }
     catch(Exception e){

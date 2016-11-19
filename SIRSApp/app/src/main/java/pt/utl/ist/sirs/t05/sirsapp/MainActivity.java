@@ -1,6 +1,7 @@
 package pt.utl.ist.sirs.t05.sirsapp;
 
 import android.os.AsyncTask;
+import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
@@ -16,6 +17,8 @@ import java.net.Socket;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -34,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         protected Void doInBackground(Void... unused) {
             String TAG = "DEBUG";
 
-            String serverName = "192.168.1.239";
+            String serverName = "192.168.1.5";
             int port = 6000;
 
             try {
@@ -54,6 +57,17 @@ public class MainActivity extends AppCompatActivity {
                     cipher.init(Cipher.DECRYPT_MODE, secret, iv);
                     String result = new String(cipher.doFinal(ciphertext), "UTF-8");
                     Log.w("RESULT", result);
+
+
+                    RSA testText = new RSA();
+                    String ze = testText.encrypt("banana");
+                    Log.w("Debug", ze);
+                    byte[] r = testText.decrypt(ze);
+
+                    Log.w("Debug", new String(r, "UTF-8" ));
+
+
+
                 }catch (Exception e){
                     Log.w(TAG, e.getMessage());
                 }

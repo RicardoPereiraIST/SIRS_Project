@@ -1,27 +1,26 @@
 package pt.utl.ist.sirs.t05.sirsapp;
 
 import android.os.AsyncTask;
-import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
+import java.security.PublicKey;
 
-import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import java.math.BigInteger;
-import java.security.SecureRandom;
+import javax.crypto.spec.SecretKeySpec;
 
 
 public class MainActivity extends AppCompatActivity {
+
+    private SecretKey weakKey;
+    private SecretKey sessionKey;
+    private static final String IP_ADDR = "192.168.1.239";
+    private static final int PORT = 6000;
+    private static final String DEBUG_TAG = "DEBUG";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,62 +30,51 @@ public class MainActivity extends AppCompatActivity {
         new Client().execute();
     }
 
+
     class Client extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... unused) {
-            String TAG = "DEBUG";
-
-            String serverName = "192.168.1.5";
-            int port = 6000;
 
             try {
-                Key key = new Key("espargueteabolonhesa");
-                SecretKey secret = key.getKey();
-                Log.w(TAG, Base64.encodeToString(key.getKey().getEncoded(), Base64.DEFAULT));
+                // Create the key to start the communication with the server
+                WeakKey keyClass = new WeakKey("espargueteabolonhesa", "1234561234567812");
+                SecretKey weak = keyClass.getKey();
 
-                String plaintext = "banana";
-                try {
+                RSA rsa = new RSA();
+                PublicKey public_key = rsa.getKeyPair().getPublic();
 
-                    String initVector = "RandomInitVector";
-                    IvParameterSpec iv = new IvParameterSpec(initVector.getBytes("UTF-8"));
+                // Connect to the client
+                Log.d(DEBUG_TAG, "Connecting to " + IP_ADDR + " on port " + PORT);
+                Socket client = new Socket(IP_ADDR, PORT);
 
-                    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
-                    cipher.init(Cipher.ENCRYPT_MODE, secret, iv);
-                    byte[] ciphertext = cipher.doFinal(plaintext.getBytes());
-                    cipher.init(Cipher.DECRYPT_MODE, secret, iv);
-                    String result = new String(cipher.doFinal(ciphertext), "UTF-8");
-                    Log.w("RESULT", result);
+                SocketComms communication = new SocketComms(client);
 
+                Log.d(DEBUG_TAG, "Just connected to " + client.getRemoteSocketAddress());
 
-                    RSA testText = new RSA();
-                    String ze = testText.encrypt("banana");
-                    Log.w("Debug", ze);
-                    byte[] r = testText.decrypt(ze);
+                // Encrypt public key
+                String public_string = Base64.encodeToString(public_key.getEncoded(), Base64.DEFAULT);
+                byte[] encryptedPublicKey = keyClass.encryptWithWeakKey(public_string, weak);
 
-                    Log.w("Debug", new String(r, "UTF-8" ));
+                Log.d(DEBUG_TAG,Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
 
+                // Send the encrypted key to the server
+                communication.writeToServer(Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
 
+                // Read response from the server
+                String serverPublicEncrypted = communication.readFromServer();
+                Log.d(DEBUG_TAG, serverPublicEncrypted);
 
-                }catch (Exception e){
-                    Log.w(TAG, e.getMessage());
-                }
+                // Convert the string received to a Session Key
+                byte[] sessionKeyBytes = Base64.decode(
+                        rsa.decrypt(serverPublicEncrypted, rsa.getKeyPair().getPrivate()), Base64.DEFAULT);
 
+                SecretKey sessionKey =
+                        new SecretKeySpec(Base64.decode(sessionKeyBytes, Base64.DEFAULT), 0, sessionKeyBytes.length, "AES");
 
-                Log.w(TAG, "Connecting to " + serverName + " on port " + port);
-                Socket client = new Socket(serverName, port);
-
-                Log.w(TAG, "Just connected to " + client.getRemoteSocketAddress());
-                OutputStream outToServer = client.getOutputStream();
-                DataOutputStream out = new DataOutputStream(outToServer);
-
-                out.writeUTF("Hello from " + client.getLocalSocketAddress());
-                InputStream inFromServer = client.getInputStream();
-                DataInputStream in = new DataInputStream(inFromServer);
-
-                Log.w(TAG, "Server says " + in.readUTF());
                 client.close();
-            }catch(IOException e) {
+
+            }catch(Exception e) {
                 e.printStackTrace();
             }
 

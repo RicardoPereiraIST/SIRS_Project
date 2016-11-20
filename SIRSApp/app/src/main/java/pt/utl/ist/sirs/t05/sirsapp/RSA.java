@@ -26,17 +26,15 @@ public class RSA
         keyPair = keygen.generateKeyPair();
     }
 
-    public String encrypt(String plaintext)  throws Exception
+    public String encrypt(String plaintext, PublicKey key)  throws Exception
     {
-        PublicKey key = keyPair.getPublic();
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.ENCRYPT_MODE, key);
         byte[] ciphertext = cipher.doFinal(plaintext.getBytes("UTF8"));
         return encodeBASE64(ciphertext);
     }
-    public byte[] decrypt(String ciphertext)  throws Exception
+    public byte[] decrypt(String ciphertext, PrivateKey key)  throws Exception
     {
-        PrivateKey key = keyPair.getPrivate();
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.DECRYPT_MODE, key);
         byte[] plaintext = cipher.doFinal(decodeBASE64(ciphertext));
@@ -53,7 +51,7 @@ public class RSA
         return data;
     }
 
-    private KeyPair getKeyPair(){
+    public KeyPair getKeyPair(){
         return keyPair;
     }
 }

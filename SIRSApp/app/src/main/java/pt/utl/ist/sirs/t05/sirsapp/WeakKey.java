@@ -7,7 +7,6 @@ import java.security.spec.KeySpec;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -37,10 +36,10 @@ public class WeakKey {
         }
     }
 
-    public byte[] encryptWithWeakKey(String plaintext, SecretKey key) throws Exception{
+    public byte[] encryptWithWeakKey(byte[] plaintext, SecretKey key) throws Exception{
         Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, key);
-        return cipher.doFinal(plaintext.getBytes());
+        return cipher.doFinal(plaintext);
     }
 
     public String decryptWithWeakKey(byte[] ciphertext, SecretKey key) throws Exception{

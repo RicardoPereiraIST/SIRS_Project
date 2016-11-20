@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
@@ -37,10 +38,17 @@ public class MainActivity extends AppCompatActivity {
         protected Void doInBackground(Void... unused) {
 
             try {
-                // Create the key to start the communication with the server
-                WeakKey keyClass = new WeakKey("espargueteabolonhesa", "1234561234567812");
-                SecretKey weak = keyClass.getKey();
 
+                // Create a pre determined iv for the session key
+                String ivStr = "Randominitvector";
+                IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
+
+                // Create the key to start the communication with the server
+                // Function receives the password and the salt associated
+                WeakKey keyClass = new WeakKey("espargueteabolonhesa", "1234561234567812");
+                weakKey = keyClass.getKey();
+
+                // Generate a pair of RSA keys to start the protocol
                 RSA rsa = new RSA();
                 PublicKey public_key = rsa.getKeyPair().getPublic();
 
@@ -52,25 +60,27 @@ public class MainActivity extends AppCompatActivity {
 
                 Log.d(DEBUG_TAG, "Just connected to " + client.getRemoteSocketAddress());
 
-                // Encrypt public key
-                String public_string = Base64.encodeToString(public_key.getEncoded(), Base64.DEFAULT);
-                byte[] encryptedPublicKey = keyClass.encryptWithWeakKey(public_string, weak);
+                // Encrypt public key with the initial key
+                byte[] encryptedPublicKey = keyClass.encryptWithWeakKey(public_key.getEncoded(), weakKey);
 
                 Log.d(DEBUG_TAG,Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
 
-                // Send the encrypted key to the server
+                // Send the encrypted public key to the server
                 communication.writeToServer(Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
 
-                // Read response from the server
+                // Receive from the server the session key encrypted with the public key
                 String serverPublicEncrypted = communication.readFromServer();
                 Log.d(DEBUG_TAG, serverPublicEncrypted);
 
-                // Convert the string received to a Session Key
-                byte[] sessionKeyBytes = Base64.decode(
-                        rsa.decrypt(serverPublicEncrypted, rsa.getKeyPair().getPrivate()), Base64.DEFAULT);
+                // Decrypt the key with the private key
+                byte[] sessionKeyBytes = Base64.decode(serverPublicEncrypted, Base64.DEFAULT);
+                byte[] decryptedSessionKey = rsa.decrypt(sessionKeyBytes, rsa.getKeyPair().getPrivate());
 
-                SecretKey sessionKey =
-                        new SecretKeySpec(Base64.decode(sessionKeyBytes, Base64.DEFAULT), 0, sessionKeyBytes.length, "AES");
+                Log.d(DEBUG_TAG, "Session Key received");
+
+                sessionKey = new SecretKeySpec(decryptedSessionKey, 0, decryptedSessionKey.length, "AES");
+
+
 
                 client.close();
 

@@ -33,11 +33,11 @@ public class RSA
         byte[] ciphertext = cipher.doFinal(plaintext.getBytes("UTF8"));
         return encodeBASE64(ciphertext);
     }
-    public byte[] decrypt(String ciphertext, PrivateKey key)  throws Exception
+    public byte[] decrypt(byte[] ciphertext, PrivateKey key)  throws Exception
     {
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.DECRYPT_MODE, key);
-        byte[] plaintext = cipher.doFinal(decodeBASE64(ciphertext));
+        byte[] plaintext = cipher.doFinal(ciphertext);
         return plaintext;
     }
     private String encodeBASE64(byte[] bytes)

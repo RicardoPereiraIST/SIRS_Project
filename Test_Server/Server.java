@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
 import javax.crypto.KeyGenerator;
+import javax.crypto.spec.IvParameterSpec;
 
 
 public class Server extends Thread {
@@ -29,7 +30,7 @@ public class Server extends Thread {
    public void run() {
       while(true) {
          try {
-            weakKey = generateWeakKey("espargueteabolonhesa"), "1234561234567812");
+            weakKey = generateWeakKey("espargueteabolonhesa", "1234561234567812");
 
             System.out.println("Waiting for client on port " + 
                serverSocket.getLocalPort() + "...");
@@ -97,6 +98,7 @@ public class Server extends Thread {
       }catch(Exception e){
          e.printStackTrace();
       }
+      return null;
    }
 
    public byte[] decryptWithWeakKey(byte[] ciphertext, SecretKey key)throws Exception{
@@ -125,7 +127,7 @@ public class Server extends Thread {
       return cipher.doFinal(nonce.getBytes("UTF-8"));
    }
 
-   public SecretKey generateSessionKey(){
+   public SecretKey generateSessionKey() throws Exception{
       KeyGenerator keyGen = KeyGenerator.getInstance("AES");
       keyGen.init(256);
       return keyGen.generateKey();

@@ -16,9 +16,9 @@ public class SessionKey {
         return cipher.doFinal(nonce.getBytes("UTF-8"));
     }
 
-    public byte[] decryptWithSessionKey(String nonce, SecretKey key, IvParameterSpec iv)throws Exception{
+    public byte[] decryptWithSessionKey(byte[] nonce, SecretKey key, IvParameterSpec iv)throws Exception{
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, key, iv);
-        return cipher.doFinal(nonce.getBytes("UTF-8"));
+        return cipher.doFinal(nonce);
     }
 }

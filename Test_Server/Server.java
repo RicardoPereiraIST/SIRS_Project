@@ -14,6 +14,7 @@ import javax.crypto.Cipher;
 import javax.xml.bind.DatatypeConverter;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
+import java.security.SecureRandom;
 
 
 public class Server extends Thread {
@@ -30,15 +31,20 @@ public class Server extends Thread {
    public void run() {
       while(true) {
          try {
+            // Create a pre determined iv for the session key
+            String ivStr = "Randominitvector";
+            IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
+
+            // Generate the initial key based on the password
             weakKey = generateWeakKey("espargueteabolonhesa", "1234561234567812");
 
-            System.out.println("Waiting for client on port " + 
-               serverSocket.getLocalPort() + "...");
+            System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "...");
             Socket server = serverSocket.accept();
             
             System.out.println("Just connected to " + server.getRemoteSocketAddress());
             DataInputStream in = new DataInputStream(server.getInputStream());
 
+            // Receive from client the public key
             String received = in.readUTF();
 
             byte[] encrypted_public_key = DatatypeConverter.parseBase64Binary(received);
@@ -48,6 +54,7 @@ public class Server extends Thread {
             mobilePublicKey = KeyFactory.getInstance("RSA").
                                     generatePublic(new X509EncodedKeySpec(decrypted_public_key));
 
+            // Generate and send the enrypted session key
             System.out.println("Sending session key encrypted...");
             sessionKey = generateSessionKey();
 
@@ -57,12 +64,64 @@ public class Server extends Thread {
             out.writeUTF(sessionKeyToSend);
 
             // Challenge implementation 
-            // TODO
+            // 1 - Respond to the client challenge
 
-            // Tests on the Session Key
-            // TODO
+            String encodedNonce = in.readUTF();
 
-            server.close();
+            byte[] decodedNonce = Base64.getMimeDecoder().decode(encodedNonce);
+
+            byte[] decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey, iv);
+            String stringNonce = new String(decryptedNonce, "UTF-8");
+
+            long nonce = Long.valueOf(stringNonce).longValue();
+
+            System.out.println("Nonce received from client -> " + nonce);
+            // Calculate 
+            nonce++;
+            stringNonce = Long.toString(nonce);
+            System.out.println("Nonce calculated -> " + stringNonce);
+
+            // Encrypt and resend
+            byte[] encrpytedNonce = encryptWithSessionKey(stringNonce, sessionKey, iv);
+            encodedNonce = Base64.getMimeEncoder().encodeToString(encrpytedNonce);
+
+            System.out.println("Sending the nonce...");
+            out.writeUTF(encodedNonce);
+
+            // 2- Send coninuous challenges to the client ---------------------
+            // ------------ START CHALLENGES ----------------------------------
+            while(true){
+               System.out.println("Sending the continuous challenge nonce...");
+               SecureRandom random = new SecureRandom();
+               Long generatedNonce = random.nextLong();
+               String nonceString = Long.toString(generatedNonce);
+
+               System.out.println("Nonce is -> " + nonceString);
+
+               byte[] encryptedNonce = encryptWithSessionKey(nonceString, sessionKey, iv);
+               String encryptedNonceString = Base64.getMimeEncoder().encodeToString(encryptedNonce);
+
+               out.writeUTF(encryptedNonceString);
+
+               nonceString = in.readUTF();
+
+               decodedNonce = Base64.getMimeDecoder().decode(nonceString);
+               decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey, iv);
+               String decryptedNonceString = new String(decryptedNonce, "UTF-8");
+               nonce = Long.valueOf(decryptedNonceString).longValue();
+
+               System.out.println("Comparing " + nonce + " and " + (generatedNonce + 1));
+               if(nonce == generatedNonce + 1){
+                  System.out.println("Nonce is correct, sleeping...");
+               }else{
+                  System.out.println("Something is not right... closing the connection");
+                  server.close();
+               }
+               // Sleeping 30 seconds
+               Thread.sleep(30000);
+
+            }
+
             
          }catch(SocketTimeoutException s) {
             System.out.println("Socket timed out!");
@@ -84,6 +143,8 @@ public class Server extends Thread {
          e.printStackTrace();
       }
    }
+
+   // ------- Weak initial key -------------
 
    public SecretKey generateWeakKey(String password, String salt){
       try{
@@ -107,13 +168,21 @@ public class Server extends Thread {
       return cipher.doFinal(ciphertext);
    }
 
+   // -------------------------------------
+
+
+   // ------------ RSA --------------------
 
    public String encryptWithPublicKey(byte[] plaintext, PublicKey key)throws Exception{
       Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
       cipher.init(Cipher.ENCRYPT_MODE, key);
       byte[] ciphertext = cipher.doFinal(plaintext);
-      return Base64.getEncoder().encodeToString(ciphertext);
+      return DatatypeConverter.printBase64Binary(ciphertext);
    }
+
+   // ------------------------------------
+
+   // ------ Session Key -----------------
 
    public byte[] encryptWithSessionKey(String nonce, SecretKey key, IvParameterSpec iv) throws Exception{
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -121,17 +190,19 @@ public class Server extends Thread {
       return cipher.doFinal(nonce.getBytes("UTF-8"));
    }
 
-   public byte[] decryptWithSessionKey(String nonce, SecretKey key, IvParameterSpec iv) throws Exception{
+   public byte[] decryptWithSessionKey(byte[] nonce, SecretKey key, IvParameterSpec iv) throws Exception{
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       cipher.init(Cipher.DECRYPT_MODE, key, iv);
-      return cipher.doFinal(nonce.getBytes("UTF-8"));
+      return cipher.doFinal(nonce);
    }
 
    public SecretKey generateSessionKey() throws Exception{
       KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-      keyGen.init(256);
+      keyGen.init(128);
       return keyGen.generateKey();
    }
+
+   // -------------------------------------
 
 
 

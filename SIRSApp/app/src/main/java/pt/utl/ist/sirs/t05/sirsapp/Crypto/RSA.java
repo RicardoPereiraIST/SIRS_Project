@@ -1,4 +1,4 @@
-package pt.utl.ist.sirs.t05.sirsapp;
+package pt.utl.ist.sirs.t05.sirsapp.Crypto;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;

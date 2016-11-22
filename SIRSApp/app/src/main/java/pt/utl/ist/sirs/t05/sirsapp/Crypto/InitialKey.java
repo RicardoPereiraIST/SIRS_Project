@@ -1,4 +1,4 @@
-package pt.utl.ist.sirs.t05.sirsapp;
+package pt.utl.ist.sirs.t05.sirsapp.Crypto;
 
 import android.util.Log;
 
@@ -14,14 +14,13 @@ import javax.crypto.spec.SecretKeySpec;
  * Created by Diogo on 11/17/2016.
  */
 
-public class WeakKey {
+public class InitialKey {
 
     private SecretKey key;
 
-    public WeakKey(String password, String salt){
+    public InitialKey(String password){
         try {
-
-            byte[] byte_salt = salt.getBytes();
+            byte[] byte_salt = "1234561234567812".getBytes();
 
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 

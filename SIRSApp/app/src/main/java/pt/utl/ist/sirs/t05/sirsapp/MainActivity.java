@@ -1,42 +1,128 @@
 package pt.utl.ist.sirs.t05.sirsapp;
 
+import pt.utl.ist.sirs.t05.sirsapp.Crypto.RSA;
+import pt.utl.ist.sirs.t05.sirsapp.Crypto.SessionKey;
+import pt.utl.ist.sirs.t05.sirsapp.Crypto.InitialKey;
+
 import android.os.AsyncTask;
-import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.util.Random;
 
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 
-public class MainActivity extends AppCompatActivity {
 
-    private SecretKey weakKey;
-    private SecretKey sessionKey;
-    private static final String IP_ADDR = "192.168.1.136";
-    private static final int PORT = 6000;
-    private static final String DEBUG_TAG = "DEBUG";
-
-
+public class MainActivity extends AppCompatActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        new Client().execute();
+        Button saveButton = (Button)findViewById(R.id.save_button);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                EditText passwordText = (EditText)findViewById(R.id.password_box);
+                if(!passwordText.getText().toString().equals("")){
+                    Toast.makeText(view.getContext(), "Launching connection", Toast.LENGTH_SHORT).show();
+                    new Client(passwordText.getText().toString()).execute();
+                    passwordText.setVisibility(View.INVISIBLE);
+                    findViewById(R.id.insert_password_text).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.save_button).setVisibility(View.INVISIBLE);
+                }
+                else{
+                    Toast.makeText(view.getContext(), "Insert password first", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
 
     class Client extends AsyncTask<Void, Void, Void> {
 
+        private SecretKey initialKey;
+        private SecretKey sessionKey;
+        private PublicKey publicKey;
+        private String password;
+
+        private InitialKey initialKeyCipher;
+        private RSA rsaCipher;
+        private SessionKey sessionKeyCipher;
+
+        Client(String password){
+            this.password = password;
+        }
+
+        private void generateInitialKeys(){
+            this.initialKeyCipher = new InitialKey(password);
+            this.initialKey = initialKeyCipher.getKey();
+
+            this.sessionKeyCipher = new SessionKey();
+
+            try {
+                this.rsaCipher = new RSA();
+                this.publicKey = rsaCipher.getKeyPair().getPublic();
+            }catch (Exception e){
+                Log.e("ERROR", "Error generating RSA keys");
+            }
+        }
+
+        private String generateNonce(){
+            SecureRandom random = new SecureRandom();
+            Long generatedNonce = random.nextLong();
+
+            return Long.toString(generatedNonce);
+        }
+
+        private void encryptAndSendNonce(String nonce, SocketComms communication){
+            Log.d(Constant.DEBUG_TAG, "[OUT] Nonce -> " + nonce);
+            try {
+                byte[] encryptedNonce = sessionKeyCipher.encryptWithSessionKey(nonce, this.sessionKey);
+                // Convert bytes to a base64 string
+                String encryptedNonceString = Base64.encodeToString(encryptedNonce, Base64.DEFAULT);
+                Log.d(Constant.DEBUG_TAG, "[OUT] Encrypted encoded nonce -> " + encryptedNonceString);
+                communication.writeToServer(encryptedNonceString);
+                Log.d(Constant.DEBUG_TAG, "[OUT] Sent");
+            }catch (IOException e){
+                Log.e("ERROR", "Error sending the nonce to the server");
+            }catch(Exception e){
+                Log.e("ERROR", "Error encrypting the nonce with the session key");
+            }
+        }
+
+        private long receiveAndDecryptNonce(SocketComms communication){
+            String decrypted = "";
+            try {
+                String receivedNonce = communication.readFromServer();
+                byte[] decodedNonce = Base64.decode(receivedNonce, Base64.DEFAULT);
+                byte[] decryptedNonce = sessionKeyCipher.decryptWithSessionKey(decodedNonce, sessionKey);
+                decrypted = new String(decryptedNonce, "UTF-8");
+                Log.d(Constant.DEBUG_TAG, "[OUT] Nonce received  -> " + decrypted);
+            }catch(IOException e){
+                Log.e("ERROR", "Error reading the nonce from the server");
+            }catch(Exception e){
+                Log.e("ERROR", "Error decrypting the nonce with the session key");
+            }
+            return Long.valueOf(decrypted).longValue();
+        }
+
+        private String calculateNonce(long nonce){
+            long n = nonce + 1;
+            return Long.toString(n);
+        }
         /* ---------------- ATTENTION ------------------------------
            The following code must be refactor in several methods and
            classes. Below it is just am early version.
@@ -47,105 +133,57 @@ public class MainActivity extends AppCompatActivity {
         protected Void doInBackground(Void... unused) {
 
             try {
-                // Create a pre determined iv for the session key
-                String ivStr = "Randominitvector";
-                IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
-
-                // Create the key to start the communication with the server
-                // Function receives the password and the salt associated
-                WeakKey keyClass = new WeakKey("espargueteabolonhesa", "1234561234567812");
-                weakKey = keyClass.getKey();
-
-                // Generate a pair of RSA keys to start the protocol
-                RSA rsa = new RSA();
-                PublicKey public_key = rsa.getKeyPair().getPublic();
+                // Generate the initial key and the RSA pair
+                generateInitialKeys();
 
                 // Connect to the client
-                Log.d(DEBUG_TAG, "[Socket] Connecting to " + IP_ADDR + " on port " + PORT);
-                Socket client = new Socket(IP_ADDR, PORT);
-
+                Log.d(Constant.DEBUG_TAG, "[Socket] Connecting to " + Constant.IP_ADDR + " on port " + Constant.PORT);
+                Socket client = new Socket(Constant.IP_ADDR, Constant.PORT);
                 SocketComms communication = new SocketComms(client);
-
-                Log.d(DEBUG_TAG, "[Socket] Just connected to " + client.getRemoteSocketAddress());
+                Log.d(Constant.DEBUG_TAG, "[Socket] Just connected to " + client.getRemoteSocketAddress());
 
                 // Encrypt public key with the initial key
-                byte[] encryptedPublicKey = keyClass.encryptWithWeakKey(public_key.getEncoded(), weakKey);
-
-                Log.d(DEBUG_TAG,"[OUT] Public key encrpyted: " + Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
-
+                byte[] encryptedPublicKey = initialKeyCipher.encryptWithWeakKey(publicKey.getEncoded(), initialKey);
+                Log.d(Constant.DEBUG_TAG,"[OUT] Public key encrpyted: " + Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
                 // Send the encrypted public key to the server
                 communication.writeToServer(Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
 
                 // Receive from the server the session key encrypted with the public key
                 String serverPublicEncrypted = communication.readFromServer();
-                Log.d(DEBUG_TAG, "[IN] Session Key encrypted: " + serverPublicEncrypted);
-
+                Log.d(Constant.DEBUG_TAG, "[IN] Session Key encrypted: " + serverPublicEncrypted);
                 // Decrypt the key with the private key
                 byte[] sessionKeyBytes = Base64.decode(serverPublicEncrypted, Base64.DEFAULT);
-                byte[] decryptedSessionKey = rsa.decrypt(sessionKeyBytes, rsa.getKeyPair().getPrivate());
-
-                Log.d(DEBUG_TAG, "[IN] Session Key received");
-
-                sessionKey = new SecretKeySpec(decryptedSessionKey, "AES");
+                byte[] decryptedSessionKey = rsaCipher.decrypt(sessionKeyBytes, rsaCipher.getKeyPair().getPrivate());
+                Log.d(Constant.DEBUG_TAG, "[IN] Session Key received");
+                this.sessionKey = new SecretKeySpec(decryptedSessionKey, "AES");
 
                 // Send challenge to server ------------------------------------
-                SessionKey sessionKeyClass = new SessionKey();
+                String nonceString = generateNonce();
+                encryptAndSendNonce(nonceString, communication);
 
-                SecureRandom random = new SecureRandom();
-                Long generatedNonce = random.nextLong();
-                String nonceString = Long.toString(generatedNonce);
+                // Receive the nonce from the server
+                long nonce = receiveAndDecryptNonce(communication);
 
-                Log.w(DEBUG_TAG, "[OUT] Nonce -> " + nonceString);
-                byte[] encryptedNonce = sessionKeyClass.encryptWithSessionKey(nonceString, sessionKey, iv);
-
-                // Convert bytes to a base64 string
-                String encryptedNonceString = Base64.encodeToString(encryptedNonce, Base64.DEFAULT);
-                Log.w(DEBUG_TAG, "[OUT] Encrypted encoded nonce -> " + encryptedNonceString);
-
-                communication.writeToServer(encryptedNonceString);
-                Log.w(DEBUG_TAG, "[OUT] Sent");
-                String receivedNonce = communication.readFromServer();
-
-                byte[] decodedNonce = Base64.decode(receivedNonce, Base64.DEFAULT);
-                byte[] decryptedNonce = sessionKeyClass.decryptWithSessionKey(decodedNonce, sessionKey, iv);
-
-                String decryptedNonceString = new String(decryptedNonce, "UTF-8");
-                Log.w(DEBUG_TAG, "[OUT] Nonce received  -> " + decryptedNonceString);
-
-                long nonce = Long.valueOf(decryptedNonceString).longValue();
-
-                if(nonce == generatedNonce + 1){
-                    Log.d(DEBUG_TAG, "Nonce is correct, proceed");
+                if(nonce == Long.valueOf(nonceString).longValue() + 1){
+                    Log.d(Constant.DEBUG_TAG, "Nonce is correct, proceed");
                 }else{
-                    Log.w(DEBUG_TAG, "Something is wrong, shutdown the connection");
+                    Log.w(Constant.DEBUG_TAG, "Something is wrong, closing the connection");
                     client.close();
                 }
 
-                // ------ END OF CLIENT CHALLENGE -----------
-                // Begin to respond to the server challenges ( 2 challenges per min ----------------
+                // Begin to respond to the server challenges ( 2 challenges per min) ----------------
                 while (true){
                     // Receive and decrypt the nonce with the session key
-                    Log.w(DEBUG_TAG, "Get ready for the challenge...");
-                    receivedNonce = communication.readFromServer();
-
-                    decodedNonce = Base64.decode(receivedNonce, Base64.DEFAULT);
-                    decryptedNonce = sessionKeyClass.decryptWithSessionKey(decodedNonce, sessionKey, iv);
-                    decryptedNonceString = new String(decryptedNonce, "UTF-8");
-                    nonce = Long.valueOf(decryptedNonceString).longValue();
+                    Log.w(Constant.DEBUG_TAG, "Get ready for the challenge...");
+                    nonce = receiveAndDecryptNonce(communication);
 
                     // Calculate
-                    nonce += 1;
-                    nonceString = Long.toString(nonce);
-                    Log.w(DEBUG_TAG, "Challenge accepted: Nonce calculated -> " + nonceString);
+                    String calculatedNonce = calculateNonce(nonce);
+                    Log.w(Constant.DEBUG_TAG, "Challenge accepted: Nonce calculated -> " + calculatedNonce);
 
                     // Encrypt and resend the nonce
-                    encryptedNonce = sessionKeyClass.encryptWithSessionKey(nonceString, sessionKey, iv);
-                    String encodedNonce = Base64.encodeToString(encryptedNonce, Base64.DEFAULT);
-                    communication.writeToServer(encodedNonce);
-
+                    encryptAndSendNonce(calculatedNonce, communication);
                 }
-                // ----------------- END OF SERVER CHALLENGES ----------------------------------------
-
             }catch(Exception e) {
                 e.printStackTrace();
             }

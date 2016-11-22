@@ -31,12 +31,9 @@ public class Server extends Thread {
    public void run() {
       while(true) {
          try {
-            // Create a pre determined iv for the session key
-            String ivStr = "Randominitvector";
-            IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
-
+         
             // Generate the initial key based on the password
-            weakKey = generateWeakKey("espargueteabolonhesa", "1234561234567812");
+            weakKey = generateWeakKey("espargueteabolonhesa");
 
             System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "...");
             Socket server = serverSocket.accept();
@@ -70,7 +67,7 @@ public class Server extends Thread {
 
             byte[] decodedNonce = Base64.getMimeDecoder().decode(encodedNonce);
 
-            byte[] decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey, iv);
+            byte[] decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey);
             String stringNonce = new String(decryptedNonce, "UTF-8");
 
             long nonce = Long.valueOf(stringNonce).longValue();
@@ -82,7 +79,7 @@ public class Server extends Thread {
             System.out.println("Nonce calculated -> " + stringNonce);
 
             // Encrypt and resend
-            byte[] encrpytedNonce = encryptWithSessionKey(stringNonce, sessionKey, iv);
+            byte[] encrpytedNonce = encryptWithSessionKey(stringNonce, sessionKey);
             encodedNonce = Base64.getMimeEncoder().encodeToString(encrpytedNonce);
 
             System.out.println("Sending the nonce...");
@@ -98,7 +95,7 @@ public class Server extends Thread {
 
                System.out.println("Nonce is -> " + nonceString);
 
-               byte[] encryptedNonce = encryptWithSessionKey(nonceString, sessionKey, iv);
+               byte[] encryptedNonce = encryptWithSessionKey(nonceString, sessionKey);
                String encryptedNonceString = Base64.getMimeEncoder().encodeToString(encryptedNonce);
 
                out.writeUTF(encryptedNonceString);
@@ -106,7 +103,7 @@ public class Server extends Thread {
                nonceString = in.readUTF();
 
                decodedNonce = Base64.getMimeDecoder().decode(nonceString);
-               decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey, iv);
+               decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey);
                String decryptedNonceString = new String(decryptedNonce, "UTF-8");
                nonce = Long.valueOf(decryptedNonceString).longValue();
 
@@ -146,9 +143,9 @@ public class Server extends Thread {
 
    // ------- Weak initial key -------------
 
-   public SecretKey generateWeakKey(String password, String salt){
+   public SecretKey generateWeakKey(String password){
       try{
-         byte[] saltBytes = salt.getBytes();
+         byte[] saltBytes = "1234561234567812".getBytes();
 
          SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 
@@ -184,13 +181,19 @@ public class Server extends Thread {
 
    // ------ Session Key -----------------
 
-   public byte[] encryptWithSessionKey(String nonce, SecretKey key, IvParameterSpec iv) throws Exception{
+   public byte[] encryptWithSessionKey(String nonce, SecretKey key) throws Exception{
+      String ivStr = "Randominitvector";
+      IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
+
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       cipher.init(Cipher.ENCRYPT_MODE, key, iv);
       return cipher.doFinal(nonce.getBytes("UTF-8"));
    }
 
-   public byte[] decryptWithSessionKey(byte[] nonce, SecretKey key, IvParameterSpec iv) throws Exception{
+   public byte[] decryptWithSessionKey(byte[] nonce, SecretKey key) throws Exception{
+      String ivStr = "Randominitvector";
+      IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
+
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       cipher.init(Cipher.DECRYPT_MODE, key, iv);
       return cipher.doFinal(nonce);

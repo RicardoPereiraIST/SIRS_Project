@@ -123,11 +123,6 @@ public class MainActivity extends AppCompatActivity  {
             long n = nonce + 1;
             return Long.toString(n);
         }
-        /* ---------------- ATTENTION ------------------------------
-           The following code must be refactor in several methods and
-           classes. Below it is just am early version.
-           ---------------------------------------------------------
-         */
 
         @Override
         protected Void doInBackground(Void... unused) {
@@ -169,6 +164,7 @@ public class MainActivity extends AppCompatActivity  {
                 }else{
                     Log.w(Constant.DEBUG_TAG, "Something is wrong, closing the connection");
                     client.close();
+                    return null;
                 }
 
                 // Begin to respond to the server challenges ( 2 challenges per min) ----------------

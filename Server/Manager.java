@@ -202,6 +202,9 @@ public class Manager
 
   public void pairing() throws Exception{
     System.out.println("Paired");
+    // DEMO
+    Thread thread = new ServerSocketFunctions(6000, "espargueteabolonhesa");
+    thread.start();
     display();
   }
 

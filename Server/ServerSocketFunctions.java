@@ -16,25 +16,28 @@ import javax.crypto.spec.IvParameterSpec;
 import java.security.SecureRandom;
 
 
-public class Server extends Thread {
+public class ServerSocketFunctions extends Thread {
    private ServerSocket serverSocket;
 
    private SecretKey initialKey;
    private SecretKey sessionKey;
    private PublicKey mobilePublicKey;
    
-   public Server(int port) throws IOException {
+   private String password;
+   
+   public ServerSocketFunctions(int port, String password) throws IOException {
       serverSocket = new ServerSocket(port);
-   }
+      this.password = password;
+      }
 
    public void run() {
       while(true) {
          try {
          
             // Generate the initial key based on the password
-            initialKey = generateInitialKey("espargueteabolonhesa");
+            initialKey = generateInitialKey(password);
 
-            System.out.println("Waiting for client on port " + serverSocket.getLocalPort() + "...");
+            System.out.println("\nWaiting for client on port " + serverSocket.getLocalPort() + "...");
             Socket server = serverSocket.accept();
             
             System.out.println("Just connected to " + server.getRemoteSocketAddress());
@@ -44,7 +47,7 @@ public class Server extends Thread {
             String received = in.readUTF();
 
             byte[] encrypted_public_key = DatatypeConverter.parseBase64Binary(received);
-            byte[] decrypted_public_key = decryptWithInitialKey(encrypted_public_key, weakKey);
+            byte[] decrypted_public_key = decryptWithInitialKey(encrypted_public_key, initialKey);
 
             mobilePublicKey = KeyFactory.getInstance("RSA").
                                     generatePublic(new X509EncodedKeySpec(decrypted_public_key));
@@ -104,15 +107,6 @@ public class Server extends Thread {
       }
    }
    
-   public static void main(String [] args) {
-      try {
-         Thread t = new Server(6000);
-         t.start();
-      }catch(IOException e) {
-         e.printStackTrace();
-      }
-   }
-
    // --------- Nonce Functions ------------------
    
    public String generateNonce(){

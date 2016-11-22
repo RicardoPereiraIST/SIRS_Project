@@ -35,6 +35,14 @@ public class Manager
         e.printStackTrace();
       }
     }
+    else{
+      try{
+        FileWriter fw = new FileWriter(".Users.txt", true);
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
+    }
 
     File f2 = new File(".Iv.txt");
     if(!f2.exists()){
@@ -71,9 +79,6 @@ public class Manager
           if(dir.exists())
             for(File f : dir.listFiles())
               crypto.decryptFile(f, key, iv);
-          else{
-            //createDir
-          }
           display();
         }
         else{

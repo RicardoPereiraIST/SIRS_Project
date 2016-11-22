@@ -12,6 +12,7 @@ public class Manager
   private SecretKey key;
   private IvParameterSpec iv;
   private Crypto crypto = new Crypto();
+  private FileOperations fo = new FileOperations();
 
   public Manager(){
     File dir = new File("Files");
@@ -100,14 +101,16 @@ public class Manager
     System.out.println("There are 6 commands:\nCreate\nRead\nWrite\nPairing\nLogout\nExit");
     String command = console.readLine("Enter your command: ");
     if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]") || command.matches("[Cc]")){
-      createFile();
+      fo.createFile(curUser);
       display();
     }
     else if(command.matches("[Rr][Ee][Aa][Dd]") || command.matches("[Rr]")){
-      readFile();
+      fo.readFile(curUser);
+      display();
     }
     else if(command.matches("[Ww][Rr][Ii][Tt][Ee]") || command.matches("[Ww]")){
-      writeFile();
+      fo.writeFile(curUser);
+      display();
     }
     else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]"))
       pairing();
@@ -190,91 +193,6 @@ public class Manager
       System.out.println("Try again");
       return false;
     }    
-  }
-
-  public void createFile() throws Exception{
-    Console console = System.console();
-    String fileName = console.readLine("Enter filename: ");
-    String[] parts = fileName.split("\\.");
-    File file = new File("Files/" + curUser.getUsername() + "/" + parts[0] + ".txt");
-    file.createNewFile();
-    curUser.addFile(file.getName());
-    System.out.println("File created");
-  }
-
-  public void listFiles() throws Exception{
-    File dir = new File("Files/" + curUser.getUsername() + "/");
-    if(dir.list().length==0){
-      System.out.println("You don't have files created");
-      display();
-    }
-
-    System.out.println("You have these files:");
-    for(String file : dir.list())
-      System.out.println(file);
-  }
-
-  public void writeFile() throws Exception{
-    Console console = System.console();
-    listFiles();
-    String fileName = console.readLine("What file do you want to write to?\n");
-    String[] parts = fileName.split("\\.");
-    fileName = parts[0]+".txt";
-    File file = new File("Files/" + curUser.getUsername() + "/" + fileName);
-    if(!file.exists()){
-      System.out.println("File doesn't exist. Try again:");
-      writeFile();
-    }
-    else{
-      boolean append = false;
-      boolean set = false;
-
-      while(!set){
-        String string = console.readLine("Do you want to append? Write Yes or No\n");
-        if(string.matches("[Yy][Ee][Ss]") || string.matches("[Yy]")){
-          append = true;
-          set = true;
-        }
-        else if(string.matches("[Nn][Oo]") || string.matches("[Nn]")){
-          append = false;
-          set = true;
-        }
-      }
-
-      String content = console.readLine("What do you want to write?\n");
-      FileWriter fw = new FileWriter(file, append);
-      BufferedWriter bw = new BufferedWriter(fw);
-      bw.write(content);
-      bw.close();
-      System.out.println("File written");
-      display();
-    }
-  }
-
-  public void readFile() throws Exception{
-    Console console = System.console();
-    
-    listFiles();
-
-    String fileName = console.readLine("What file do you want to read?\n");
-    String[] parts = fileName.split("\\.");
-    fileName = parts[0]+".txt";
-    File file = new File("Files/" + curUser.getUsername() + "/" + fileName);
-    if(!file.exists()){
-      System.out.println("File doesn't exist. Try again:");
-      readFile();
-    }
-    else{
-      BufferedReader br = new BufferedReader(new FileReader(file));
-
-      String line = br.readLine();
-      while(line != null){
-        System.out.println(line);
-        line = br.readLine();
-      }
-      br.close();
-    }
-    display();
   }
 
   public void pairing() throws Exception{

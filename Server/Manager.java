@@ -37,7 +37,7 @@ public class Manager
     }
     else{
       try{
-        FileWriter fw = new FileWriter(".Users.txt", true);
+        f.createNewFile();
       }
       catch(Exception e){
         e.printStackTrace();

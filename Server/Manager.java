@@ -66,12 +66,22 @@ public class Manager
         e.printStackTrace();
       }
     }
+
+    File f3 = new File(".PublicKeys.txt");
+    if(!f3.exists()){
+      try{
+        f3.createNewFile();
+      }
+      catch(Exception e){
+        e.printStackTrace();
+      }
+    }
   }
 
   public void init() throws Exception{
     Console console = System.console();
     System.out.println("Welcome to our filesystem!");
-    System.out.println("There are 3 commands:\nRegister\nLogin\nExit");
+    System.out.println("There are 3 commands:\nRegister\nInstant Pairing\nLogin\nExit");
     String command = console.readLine("Enter your command: ");
     if(command.matches("[Ll][Oo][Gg][Ii][Nn]") || command.matches("[Ll]")){
         if(login()){
@@ -91,6 +101,13 @@ public class Manager
             registed = registration();
         init();
     }
+    else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]")){
+      if(instaPairing()){
+        //call pairing function with username? (return username)
+      }
+      else
+        init();
+    } 
     else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]")){
       logout();
       exit();
@@ -99,6 +116,30 @@ public class Manager
       System.out.println("Unknown Command. Try again");
       init();
     }
+  }
+
+  public boolean instaPairing(){
+    Console console = System.console();
+    String username = console.readLine("What is your username?\n");
+    try{
+      BufferedReader br = new BufferedReader(new FileReader(".PublicKeys.txt"));
+      String line = br.readLine();
+
+      while(line != null){
+        String[] parts = line.split(" ");
+        if(parts[0].equals(username)){
+          br.close();
+          return true;
+        }
+        line = br.readLine();
+      }
+      br.close();
+      System.out.println("That user didn't pair yet");
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
+    return false;
   }
 
   public void display() throws Exception{

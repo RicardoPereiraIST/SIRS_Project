@@ -15,7 +15,9 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
 import java.security.SecureRandom;
 import java.math.BigInteger;
-
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class ServerSocketFunctions extends Thread {
    private ServerSocket serverSocket;
@@ -58,9 +60,11 @@ public class ServerSocketFunctions extends Thread {
             sessionKey = generateSessionKey();
 
             String sessionKeyToSend = encryptWithPublicKey(sessionKey.getEncoded(), mobilePublicKey);
+            String timestamp = generateTimeStamp();
+            String dataToSend = sessionKeyToSend + "." + timestamp;
 
             DataOutputStream out = new DataOutputStream(server.getOutputStream());
-            out.writeUTF(sessionKeyToSend);
+            out.writeUTF(dataToSend);
 
             //Respond to the client challenge
             long nonce = receiveAndDecryptNonce(in);
@@ -82,6 +86,11 @@ public class ServerSocketFunctions extends Thread {
                encryptAndSendNonce(nonceString, out);
 
                nonce = receiveAndDecryptNonce(in);
+
+               if(nonce == 0){
+                  System.out.println("Replay attack incoming!!!");
+                  server.close();
+               }
 
                System.out.println("Comparing " + nonce + " and " + (Long.valueOf(nonceString).longValue() + 1));
                if(nonce == Long.valueOf(nonceString).longValue() + 1){
@@ -117,19 +126,26 @@ public class ServerSocketFunctions extends Thread {
    }
    
    public void encryptAndSendNonce(String nonce, DataOutputStream out) throws Exception{
-       byte[] encryptedNonce = encryptWithSessionKey(nonce, sessionKey);
-       String encryptedNonceString = Base64.getMimeEncoder().encodeToString(encryptedNonce);
-       System.out.println("Sending the nonce...");
-       out.writeUTF(encryptedNonceString);
+      byte[] encryptedNonce = encryptWithSessionKey(nonce, sessionKey);
+      String encryptedNonceString = Base64.getMimeEncoder().encodeToString(encryptedNonce);
+      String timestamp = generateTimeStamp();
+      String dataToSend = encryptedNonceString + "." + timestamp;
+      System.out.println("Sending the nonce...");
+      out.writeUTF(dataToSend);
    }
    
    public long receiveAndDecryptNonce(DataInputStream in) throws Exception{
-       String nonceString = in.readUTF();
-       byte[] decodedNonce = Base64.getMimeDecoder().decode(nonceString);
-       byte[] decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey);
-       String decryptedNonceString = new String(decryptedNonce, "UTF-8");
-       long nonce = Long.valueOf(decryptedNonceString).longValue();
-       return nonce;
+      String nonceString = in.readUTF();
+
+      String[] parts = nonceString.split(".");
+      if(!compareTimeStamp(parts[1]))
+         return 0;
+
+      byte[] decodedNonce = Base64.getMimeDecoder().decode(nonceString);
+      byte[] decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey);
+      String decryptedNonceString = new String(decryptedNonce, "UTF-8");
+      long nonce = Long.valueOf(decryptedNonceString).longValue();
+      return nonce;
    }
    
    // ---------------------------------------------
@@ -204,6 +220,28 @@ public class ServerSocketFunctions extends Thread {
 
    // -------------------------------------
 
+   // ------ Timestamps -----------------
+   public String generateTimeStamp() throws Exception{
+      Calendar cal = Calendar.getInstance();
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss");
+      String time = sdf.format(cal.getTime());
+      return time;
+   }
 
+   public boolean compareTimeStamp(String timestamp) throws Exception{
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss");
+      Date receivedDate = sdf.parse(timestamp);
+      return isWithinRange(receivedDate);
+   }
+
+   public boolean isWithinRange(Date receivedDate) throws Exception{
+      String time = generateTimeStamp();
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss");
+      Date date = sdf.parse(time);
+
+      if(date.getTime() > receivedDate.getTime() && date.getTime() <= receivedDate.getTime()+10)
+         return true;
+      return false;
+   }
 
 }

@@ -20,44 +20,33 @@
         android:layout_height="match_parent">
 
         <TextView
-            android:text="Main menu"
+            android:text="Enter Token:"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="106dp"
+            android:id="@+id/insert_token_text"
+            android:layout_marginStart="22dp"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="21dp"
-            android:id="@+id/activity_title"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textStyle="normal|bold"
-            android:textSize="18sp" />
+            android:layout_alignParentStart="true" />
 
-        <Button
-            android:text="Pair Phone"
-            android:drawableLeft="@drawable/pairing_image"
+        <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="122dp"
-            android:id="@+id/pair_button"
-            android:elevation="2dp"
-            android:textSize="14sp"
-            android:layout_below="@+id/activity_title"
-            android:layout_alignEnd="@+id/unlock_button"
-            android:layout_alignStart="@+id/unlock_button"
-            android:fontFamily="roboto" />
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:layout_marginTop="34dp"
+            android:id="@+id/token_box"
+            android:layout_below="@+id/insert_token_text"
+            android:layout_centerHorizontal="true" />
 
         <Button
-            android:text="Unlock Files"
-            android:drawableLeft="@drawable/ic_unlock_files"
+            android:text="Save"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
-            android:drawablePadding="11sp"
-            android:id="@+id/unlock_button"
-            android:elevation="2dp"
-            android:layout_below="@+id/pair_button"
+            android:id="@+id/save_button"
+            android:layout_below="@+id/token_box"
             android:layout_centerHorizontal="true"
-            android:fontFamily="roboto" />
-
+            android:layout_marginTop="14dp" />
 
     </RelativeLayout>
 

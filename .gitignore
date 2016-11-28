@@ -48,3 +48,6 @@ Files/
 
 # .Iv file
 .Iv.txt
+
+# .PublicKey file
+.PublicKeys.txt

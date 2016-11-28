@@ -11,11 +11,11 @@ import java.net.Socket;
  * Created by Diogo on 11/19/2016.
  */
 
-public class SocketComms {
+public class CommunicationChannel {
 
     private Socket client;
 
-    SocketComms(Socket client){
+    public CommunicationChannel(Socket client){
         this.client = client;
     }
 

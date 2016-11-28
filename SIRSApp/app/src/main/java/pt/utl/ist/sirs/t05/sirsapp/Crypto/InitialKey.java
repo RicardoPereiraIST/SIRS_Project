@@ -18,13 +18,13 @@ public class InitialKey {
 
     private SecretKey key;
 
-    public InitialKey(String password){
+    public InitialKey(String token){
         try {
             byte[] byte_salt = "1234561234567812".getBytes();
 
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 
-            KeySpec spec = new PBEKeySpec(password.toCharArray(), byte_salt, 1024, 128);
+            KeySpec spec = new PBEKeySpec(token.toCharArray(), byte_salt, 1024, 128);
             SecretKey tmp = factory.generateSecret(spec);
             SecretKey secret = new SecretKeySpec(tmp.getEncoded(), "AES");
 

@@ -46,50 +46,6 @@ public class Pair extends AsyncTask<Void, Void, SecretKey> {
         }
     }
 
-    private String generateNonce(){
-        SecureRandom random = new SecureRandom();
-        Long generatedNonce = random.nextLong();
-
-        return Long.toString(generatedNonce);
-    }
-
-    private void encryptAndSendNonce(String nonce, CommunicationChannel communication){
-        Log.d(Constant.DEBUG_TAG, "[OUT] Nonce -> " + nonce);
-        try {
-            byte[] encryptedNonce = sessionKeyCipher.encryptWithSessionKey(nonce, this.sessionKey);
-            // Convert bytes to a base64 string
-            String encryptedNonceString = Base64.encodeToString(encryptedNonce, Base64.DEFAULT);
-            Log.d(Constant.DEBUG_TAG, "[OUT] Encrypted encoded nonce -> " + encryptedNonceString);
-            communication.writeToServer(encryptedNonceString);
-            Log.d(Constant.DEBUG_TAG, "[OUT] Sent");
-        }catch (IOException e){
-            Log.e("ERROR", "Error sending the nonce to the server");
-        }catch(Exception e){
-            Log.e("ERROR", "Error encrypting the nonce with the session key");
-        }
-    }
-
-    private long receiveAndDecryptNonce(CommunicationChannel communication){
-        String decrypted = "";
-        try {
-            String receivedNonce = communication.readFromServer();
-            byte[] decodedNonce = Base64.decode(receivedNonce, Base64.DEFAULT);
-            byte[] decryptedNonce = sessionKeyCipher.decryptWithSessionKey(decodedNonce, sessionKey);
-            decrypted = new String(decryptedNonce, "UTF-8");
-            Log.d(Constant.DEBUG_TAG, "[OUT] Nonce received  -> " + decrypted);
-        }catch(IOException e){
-            Log.e("ERROR", "Error reading the nonce from the server");
-        }catch(Exception e){
-            Log.e("ERROR", "Error decrypting the nonce with the session key");
-        }
-        return Long.valueOf(decrypted).longValue();
-    }
-
-    private String calculateNonce(long nonce){
-        long n = nonce + 1;
-        return Long.toString(n);
-    }
-
     @Override
     protected SecretKey doInBackground(Void... unused) {
 

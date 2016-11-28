@@ -4,6 +4,7 @@ import java.security.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.nio.file.Files;
+import java.math.BigInteger;
 
 public class Manager
 {
@@ -81,14 +82,11 @@ public class Manager
   public void init() throws Exception{
     Console console = System.console();
     System.out.println("Welcome to our filesystem!");
-    System.out.println("There are 3 commands:\nRegister\nInstant Pairing\nLogin\nExit");
+    System.out.println("There are 3 commands:\nRegister\nLogin\nExit");
     String command = console.readLine("Enter your command: ");
     if(command.matches("[Ll][Oo][Gg][Ii][Nn]") || command.matches("[Ll]")){
         if(login()){
-          File dir = new File("Files/" + curUser.getUsername() + "/");
-          if(dir.exists())
-            for(File f : dir.listFiles())
-              crypto.decryptFile(f, key, iv);
+          unlock();
           display();
         }
         else{
@@ -101,13 +99,13 @@ public class Manager
             registed = registration();
         init();
     }
-    else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]")){
+    /*else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]")){
       if(instaPairing()){
         //call pairing function with username? (return username)
       }
       else
         init();
-    } 
+    }*/
     else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]")){
       logout();
       exit();
@@ -118,7 +116,21 @@ public class Manager
     }
   }
 
-  public boolean instaPairing(){
+  public void unlock() throws Exception{
+    File dir = new File("Files/" + curUser.getUsername() + "/");
+    if(dir.exists())
+      for(File f : dir.listFiles())
+        crypto.decryptFile(f, key, iv);
+  }
+
+  public void lock() throws Exception{
+    File dir = new File("Files/" + curUser.getUsername() + "/");
+    if(dir.exists())
+      for(File f : dir.listFiles())
+        crypto.encryptFile(f, key, iv); 
+  }
+
+  /*public boolean instaPairing(){
     Console console = System.console();
     String username = console.readLine("What is your username?\n");
     try{
@@ -140,7 +152,7 @@ public class Manager
       e.printStackTrace();
     }
     return false;
-  }
+  }*/
 
   public void display() throws Exception{
     Console console = System.console();
@@ -176,9 +188,7 @@ public class Manager
 
   public void logout() throws Exception{
     if(curUser != null){
-      File dir = new File("Files/" + curUser.getUsername() + "/");
-        for(File f : dir.listFiles())
-          crypto.encryptFile(f, key, iv);
+      lock();
     }
     curUser = null;
   }

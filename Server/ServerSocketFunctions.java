@@ -14,6 +14,7 @@ import javax.xml.bind.DatatypeConverter;
 import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
 import java.security.SecureRandom;
+import java.math.BigInteger;
 
 
 public class ServerSocketFunctions extends Thread {
@@ -35,7 +36,7 @@ public class ServerSocketFunctions extends Thread {
          try {
          
             // Generate the initial key based on the password
-            initialKey = generateInitialKey(password);
+            initialKey = generateInitialKey();
 
             System.out.println("\nWaiting for client on port " + serverSocket.getLocalPort() + "...");
             Socket server = serverSocket.accept();
@@ -135,13 +136,17 @@ public class ServerSocketFunctions extends Thread {
 
    // ------- Initial key -------------------------
 
-   public SecretKey generateInitialKey(String password){
+   public SecretKey generateInitialKey(){
       try{
          byte[] saltBytes = "1234561234567812".getBytes();
 
+         SecureRandom r = new SecureRandom();
+         String ks = new BigInteger(32, r).toString(32);
+         System.out.println("Write this token in your app: " + ks);
+
          SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 
-         KeySpec spec = new PBEKeySpec(password.toCharArray(), saltBytes, 1024, 128);
+         KeySpec spec = new PBEKeySpec(ks.toCharArray(), saltBytes, 1024, 128);
          SecretKey tmp = factory.generateSecret(spec);
          return new SecretKeySpec(tmp.getEncoded(), "AES");
 

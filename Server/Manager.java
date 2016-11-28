@@ -144,9 +144,9 @@ public class Manager
 
   public void display() throws Exception{
     Console console = System.console();
-    System.out.println("There are 6 commands:\nCreate\nRead\nWrite\nPairing\nLogout\nExit");
+    System.out.println("There are 6 commands: \nPairing\nLogout\nExit");  //\nCreate\nRead\nWrite\n
     String command = console.readLine("Enter your command: ");
-    if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]") || command.matches("[Cc]")){
+    /*if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]") || command.matches("[Cc]")){
       fo.createFile(curUser);
       display();
     }
@@ -157,8 +157,8 @@ public class Manager
     else if(command.matches("[Ww][Rr][Ii][Tt][Ee]") || command.matches("[Ww]")){
       fo.writeFile(curUser);
       display();
-    }
-    else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]"))
+    }*/
+    if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]"))
       pairing();
     else if(command.matches("[Ll][Oo][Gg][Oo][Uu][Tt]") || command.matches("[Ll]")){
       logout();

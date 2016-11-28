@@ -67,9 +67,16 @@ public class Pair extends AsyncTask<Void, Void, SecretKey> {
 
             // Receive from the server the session key encrypted with the public key
             String serverPublicEncrypted = channel.readFromServer();
-            Log.d(Constant.DEBUG_TAG, "[IN] Session Key encrypted: " + serverPublicEncrypted);
+            String[] parts = serverPublicEncrypted.split(".");
+
+            TimeStamps ts = new TimeStamps();
+            if(!ts.compareTimeStamp(parts[1])){
+                client.close();
+            }
+
+            Log.d(Constant.DEBUG_TAG, "[IN] Session Key encrypted: " + parts[0]);
             // Decrypt the key with the private key
-            byte[] sessionKeyBytes = Base64.decode(serverPublicEncrypted, Base64.DEFAULT);
+            byte[] sessionKeyBytes = Base64.decode(parts[0], Base64.DEFAULT);
             byte[] decryptedSessionKey = rsaCipher.decrypt(sessionKeyBytes, rsaCipher.getKeyPair().getPrivate());
             Log.d(Constant.DEBUG_TAG, "[IN] Session Key received");
             this.sessionKey = new SecretKeySpec(decryptedSessionKey, "AES");

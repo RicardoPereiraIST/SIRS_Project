@@ -69,6 +69,11 @@ public class ServerSocketFunctions extends Thread {
             //Respond to the client challenge
             long nonce = receiveAndDecryptNonce(in);
 
+            if(nonce == 0){
+                  System.out.println("Replay attack incoming!!!");
+                  server.close();
+            }
+
             System.out.println("Nonce received from client -> " + nonce);
             // Calculate 
             nonce++;

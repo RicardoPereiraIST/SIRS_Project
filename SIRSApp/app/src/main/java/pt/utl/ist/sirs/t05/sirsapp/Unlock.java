@@ -16,6 +16,7 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
 
     private SecretKey sessionKey;
     private SessionKey sessionKeyCipher;
+    private TimeStamps ts;
 
     public Unlock(SecretKey sessionKey){
         this.sessionKey = sessionKey;
@@ -36,7 +37,11 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
             // Convert bytes to a base64 string
             String encryptedNonceString = Base64.encodeToString(encryptedNonce, Base64.DEFAULT);
             Log.d(Constant.DEBUG_TAG, "[OUT] Encrypted encoded nonce -> " + encryptedNonceString);
-            communication.writeToServer(encryptedNonceString);
+
+            String timestamp = ts.generateTimeStamp();
+            String dataToSend = encryptedNonceString + "." + timestamp;
+
+            communication.writeToServer(dataToSend);
             Log.d(Constant.DEBUG_TAG, "[OUT] Sent");
         }catch (IOException e){
             Log.e("ERROR", "Error sending the nonce to the server");
@@ -49,7 +54,11 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
         String decrypted = "";
         try {
             String receivedNonce = communication.readFromServer();
-            byte[] decodedNonce = Base64.decode(receivedNonce, Base64.DEFAULT);
+            String[] parts = receivedNonce.split(".");
+            if(!ts.compareTimeStamp(parts[1]))
+                return 0;
+
+            byte[] decodedNonce = Base64.decode(parts[0], Base64.DEFAULT);
             byte[] decryptedNonce = sessionKeyCipher.decryptWithSessionKey(decodedNonce, sessionKey);
             decrypted = new String(decryptedNonce, "UTF-8");
             Log.d(Constant.DEBUG_TAG, "[OUT] Nonce received  -> " + decrypted);
@@ -80,6 +89,11 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
             // Receive the nonce from the server
             long nonce = receiveAndDecryptNonce(channel);
 
+            if(nonce == 0){
+                  Log.d(Constant.DEBUG_TAG, "Replay attack incoming!!!");
+                  client.close();
+            }
+
             if(nonce == Long.valueOf(nonceString).longValue() + 1){
                 Log.d(Constant.DEBUG_TAG, "Nonce is correct, proceed");
             }else{
@@ -93,6 +107,11 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
                 // Receive and decrypt the nonce with the session key
                 Log.w(Constant.DEBUG_TAG, "Get ready for the challenge...");
                 nonce = receiveAndDecryptNonce(channel);
+
+                if(nonce == 0){
+                  Log.d(Constant.DEBUG_TAG, "Replay attack incoming!!!");
+                  client.close();
+                }
 
                 // Calculate
                 String calculatedNonce = calculateNonce(nonce);

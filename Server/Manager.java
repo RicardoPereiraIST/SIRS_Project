@@ -5,6 +5,7 @@ import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.nio.file.Files;
 import java.math.BigInteger;
+import java.security.SecureRandom;
 
 public class Manager
 {
@@ -14,6 +15,8 @@ public class Manager
   private IvParameterSpec iv;
   private Crypto crypto = new Crypto();
   private FileOperations fo = new FileOperations();
+
+  private Unlock unlock;
 
   public Manager(){
     File dir = new File("Files");
@@ -262,11 +265,29 @@ public class Manager
   }
 
   public void pairing() throws Exception{
-    System.out.println("Paired\n");
-    // DEMO
-    Thread thread = new ServerSocketFunctions(6000, "espargueteabolonhesa");
-    thread.start();
+    System.out.println("Pairing with your smartphone");
+
+    SecureRandom r = new SecureRandom();
+    String token = new BigInteger(32, r).toString(32);
+    System.out.println("Write this token in your app: " + token);
+
+    Pair pair = new Pair(6000, token);
+    pair.start();
+    pair.join();
+
+    System.out.println("Pinging smartphone...");
+    System.out.println("This allows the phone to unlock the files");
+
+    unlock = new Unlock(6100, pair.getSessionKey(), false);
+    unlock.start();
+    unlock.join();
+
+    if(unlock.getLockVar() == true){
+      lock();
+    }
+
     display();
+    System.out.println();
   }
 
   public void exit(){

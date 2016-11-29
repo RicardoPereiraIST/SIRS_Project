@@ -26,26 +26,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-public class ServerSocketFunctions extends Thread {
+public class Pair extends Thread {
    private ServerSocket serverSocket;
 
    private SecretKey initialKey;
    private SecretKey sessionKey;
    private PublicKey mobilePublicKey;
+
+   private String token;
    
-   private String password;
-   
-   public ServerSocketFunctions(int port, String password) throws IOException {
-      serverSocket = new ServerSocket(port);
-      this.password = password;
+   public Pair(int port, String token) throws IOException {
+      this.serverSocket = new ServerSocket(port);
+      this.token = token;
       }
 
+   public SecretKey getSessionKey(){
+    return sessionKey;
+   }
+
    public void run() {
-      while(true) {
          try {
          
             // Generate the initial key based on the password
-            initialKey = generateInitialKey();
+            initialKey = generateInitialKey(this.token);
 
             System.out.println("\nWaiting for client on port " + serverSocket.getLocalPort() + "...");
             Socket server = serverSocket.accept();
@@ -74,67 +77,16 @@ public class ServerSocketFunctions extends Thread {
             out.writeUTF(dataToSend);
 
             server.close();
-
-            serverSocket = new ServerSocket(6100);
-            server = serverSocket.accept();
-            in = new DataInputStream(server.getInputStream());
-            out = new DataOutputStream(server.getOutputStream());
-
-            //Respond to the client challenge
-            long nonce = receiveAndDecryptNonce(in);
-
-            if(nonce == 0){
-                  System.out.println("Replay attack incoming!!!");
-                  server.close();
-            }
-
-            System.out.println("Nonce received from client -> " + nonce);
-            // Calculate 
-            nonce++;
-            String stringNonce = Long.toString(nonce);
-            System.out.println("Nonce calculated -> " + stringNonce);
-
-            encryptAndSendNonce(stringNonce, out);
-
-            // ------------ START CHALLENGES ----------------------------------
-            while(true){
-               System.out.println("Sending the continuous challenge nonce...");
-               String nonceString = generateNonce();
-               System.out.println("Nonce is -> " + nonceString);
-
-               encryptAndSendNonce(nonceString, out);
-
-               nonce = receiveAndDecryptNonce(in);
-
-               if(nonce == 0){
-                  System.out.println("Replay attack incoming!!!");
-                  server.close();
-               }
-
-               System.out.println("Comparing " + nonce + " and " + (Long.valueOf(nonceString).longValue() + 1));
-               if(nonce == Long.valueOf(nonceString).longValue() + 1){
-                  System.out.println("Nonce is correct, sleeping...");
-               }else{
-                  System.out.println("Something is not right... closing the connection");
-                  server.close();
-                  return;
-               }
-               // Sleeping 30 seconds
-               Thread.sleep(30000);
-            }
-
-            
+     
          }catch(SocketTimeoutException s) {
             System.out.println("Socket timed out!");
-            break;
          }catch(IOException e) {
             e.printStackTrace();
-            break;
          }catch(Exception e){
             e.printStackTrace();
          }
       }
-   }
+
    
    // --------- Nonce Functions ------------------
    
@@ -154,10 +106,8 @@ public class ServerSocketFunctions extends Thread {
    }
    
    public long receiveAndDecryptNonce(DataInputStream in) throws Exception{
-      System.out.println("Waiting to receive token...");
       String nonceString = in.readUTF();
 
-      System.out.println("Token is heere bois...");
       String[] parts = nonceString.split("\\.");
       if(!isWithinRange(Long.valueOf(parts[1]).longValue()))
          return 0;
@@ -173,17 +123,13 @@ public class ServerSocketFunctions extends Thread {
 
    // ------- Initial key -------------------------
 
-   public SecretKey generateInitialKey(){
+   public SecretKey generateInitialKey(String token){
       try{
          byte[] saltBytes = "1234561234567812".getBytes();
 
-         SecureRandom r = new SecureRandom();
-         String ks = new BigInteger(32, r).toString(32);
-         System.out.println("Write this token in your app: " + ks);
-
          SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 
-         KeySpec spec = new PBEKeySpec(ks.toCharArray(), saltBytes, 1024, 128);
+         KeySpec spec = new PBEKeySpec(token.toCharArray(), saltBytes, 1024, 128);
          SecretKey tmp = factory.generateSecret(spec);
          return new SecretKeySpec(tmp.getEncoded(), "AES");
 

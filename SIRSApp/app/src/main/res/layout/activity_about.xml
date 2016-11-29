@@ -59,16 +59,34 @@
             android:layout_marginTop="42dp"
             android:id="@+id/textView5"
             android:layout_below="@+id/textView4"
-            android:layout_toStartOf="@+id/textView4" />
+            android:layout_toStartOf="@+id/textView4"
+            android:textStyle="normal|bold" />
 
         <TextView
             android:text="Diogo Jerónimo 77999"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="13dp"
+            android:id="@+id/textView7"
             android:layout_below="@+id/textView5"
-            android:layout_alignStart="@+id/textView5"
-            android:layout_marginTop="15dp"
-            android:id="@+id/textView7" />
+            android:layout_alignStart="@+id/textView5" />
+
+        <TextView
+            android:text="Ricardo Pereira 78051"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView"
+            android:layout_centerVertical="true"
+            android:layout_alignStart="@+id/textView7" />
+
+        <TextView
+            android:text="José Dias 78080"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView2"
+            android:layout_below="@+id/textView"
+            android:layout_alignStart="@+id/textView"
+            android:layout_marginTop="11dp" />
 
     </RelativeLayout>
 

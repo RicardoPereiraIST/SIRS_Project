@@ -6,18 +6,15 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-
+import android.widget.Toast;
 
 public class HomeActivity extends AppCompatActivity  {
-    private SecretKey sessionKey;
+    private String keyString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,10 +22,9 @@ public class HomeActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_main);
 
         Intent pairIntent = getIntent();
-        String keyString = pairIntent.getStringExtra("SessionKey");
-        if(keyString != null) {
-            this.sessionKey = new SecretKeySpec(Base64.decode(keyString, Base64.DEFAULT), "AES");
-        }
+        this.keyString = pairIntent.getStringExtra("SessionKey");
+        if(keyString != null)
+            Log.d("Home keystring:", keyString);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         toolbar.setTitle("Home");
@@ -45,13 +41,18 @@ public class HomeActivity extends AppCompatActivity  {
             }
         });
 
-        /*
         unlock_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent changeActivity = new Intent(HomeActivity.this, UnlockActivity.class);
+                if(keyString != null) {
+                    Intent changeActivity = new Intent(HomeActivity.this, UnlockActivity.class);
+                    changeActivity.putExtra("SessionKey", keyString);
+                    HomeActivity.this.startActivity(changeActivity);
+                }else{
+                    Toast.makeText(HomeActivity.this, "Phone has to be paired !", Toast.LENGTH_LONG).show();
+                }
             }
-        });*/
+        });
     }
 
     @Override

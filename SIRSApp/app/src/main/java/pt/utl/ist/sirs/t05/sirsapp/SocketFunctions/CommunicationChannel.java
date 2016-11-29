@@ -1,4 +1,4 @@
-package pt.utl.ist.sirs.t05.sirsapp;
+package pt.utl.ist.sirs.t05.sirsapp.SocketFunctions;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;

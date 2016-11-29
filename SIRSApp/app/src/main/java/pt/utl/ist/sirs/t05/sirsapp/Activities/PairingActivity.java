@@ -1,6 +1,6 @@
 package pt.utl.ist.sirs.t05.sirsapp.Activities;
 
-import pt.utl.ist.sirs.t05.sirsapp.Pair;
+import pt.utl.ist.sirs.t05.sirsapp.AsyncTasks.Pair;
 import pt.utl.ist.sirs.t05.sirsapp.R;
 
 import android.content.Intent;
@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -41,7 +42,7 @@ public class PairingActivity extends AppCompatActivity  {
                     try {
                         SecretKey sessionKey = p.get();
                         String keyString = Base64.encodeToString(sessionKey.getEncoded(), Base64.DEFAULT);
-
+                        Log.d("Paring keyString: ", keyString);
                         Intent changeActivity = new Intent(PairingActivity.this, HomeActivity.class);
                         changeActivity.putExtra("SessionKey", keyString);
                         PairingActivity.this.startActivity(changeActivity);

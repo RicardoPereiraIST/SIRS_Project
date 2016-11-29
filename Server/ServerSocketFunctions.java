@@ -66,6 +66,13 @@ public class ServerSocketFunctions extends Thread {
             DataOutputStream out = new DataOutputStream(server.getOutputStream());
             out.writeUTF(dataToSend);
 
+            server.close();
+
+            serverSocket = new ServerSocket(6100);
+            server = serverSocket.accept();
+            in = new DataInputStream(server.getInputStream());
+            out = new DataOutputStream(server.getOutputStream());
+
             //Respond to the client challenge
             long nonce = receiveAndDecryptNonce(in);
 
@@ -140,13 +147,15 @@ public class ServerSocketFunctions extends Thread {
    }
    
    public long receiveAndDecryptNonce(DataInputStream in) throws Exception{
+      System.out.println("Waiting to receive token...");
       String nonceString = in.readUTF();
 
-      String[] parts = nonceString.split(".");
+      System.out.println("Token is heere bois...");
+      String[] parts = nonceString.split("\\.");
       if(!compareTimeStamp(parts[1]))
          return 0;
 
-      byte[] decodedNonce = Base64.getMimeDecoder().decode(nonceString);
+      byte[] decodedNonce = Base64.getMimeDecoder().decode(parts[0]);
       byte[] decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey);
       String decryptedNonceString = new String(decryptedNonce, "UTF-8");
       long nonce = Long.valueOf(decryptedNonceString).longValue();
@@ -243,8 +252,8 @@ public class ServerSocketFunctions extends Thread {
       String time = generateTimeStamp();
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss");
       Date date = sdf.parse(time);
-
-      if(date.getTime() > receivedDate.getTime() && date.getTime() <= receivedDate.getTime()+10)
+      
+      if(date.getTime() >= receivedDate.getTime() && date.getTime() <= receivedDate.getTime()+10000)
          return true;
       return false;
    }

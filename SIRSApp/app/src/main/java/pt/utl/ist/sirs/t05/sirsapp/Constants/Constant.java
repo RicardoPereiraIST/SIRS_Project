@@ -1,4 +1,4 @@
-package pt.utl.ist.sirs.t05.sirsapp;
+package pt.utl.ist.sirs.t05.sirsapp.Constants;
 
 /**
  * Created by Diogo on 11/22/2016.

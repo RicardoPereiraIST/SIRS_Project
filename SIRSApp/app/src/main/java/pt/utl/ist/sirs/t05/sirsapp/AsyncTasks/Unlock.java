@@ -1,4 +1,4 @@
-package pt.utl.ist.sirs.t05.sirsapp;
+package pt.utl.ist.sirs.t05.sirsapp.AsyncTasks;
 
 import android.os.AsyncTask;
 import android.util.Base64;
@@ -10,7 +10,10 @@ import java.security.SecureRandom;
 
 import javax.crypto.SecretKey;
 
+import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.CommunicationChannel;
+import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.SessionKey;
+import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.TimeStamps;
 
 public class Unlock extends AsyncTask<Void, Void, Void> {
 
@@ -21,6 +24,7 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
     public Unlock(SecretKey sessionKey){
         this.sessionKey = sessionKey;
         this.sessionKeyCipher = new SessionKey();
+        this.ts = new TimeStamps();
     }
 
     private String generateNonce(){
@@ -54,8 +58,8 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
         String decrypted = "";
         try {
             String receivedNonce = communication.readFromServer();
-            String[] parts = receivedNonce.split(".");
-            if(!ts.compareTimeStamp(parts[1]))
+            String[] parts = receivedNonce.split("\\.");
+            if(ts.compareTimeStamp(parts[1]) == false)
                 return 0;
 
             byte[] decodedNonce = Base64.decode(parts[0], Base64.DEFAULT);
@@ -79,7 +83,7 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... unused) {
 
         try {
-            Socket client = new Socket(Constant.IP_ADDR, Constant.PORT);
+            Socket client = new Socket(Constant.IP_ADDR, 6100);
             CommunicationChannel channel = new CommunicationChannel(client);
 
             // Send challenge to server ------------------------------------

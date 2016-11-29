@@ -1,21 +1,21 @@
-package pt.utl.ist.sirs.t05.sirsapp;
+package pt.utl.ist.sirs.t05.sirsapp.AsyncTasks;
 
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
-import java.io.IOException;
 import java.net.Socket;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import pt.utl.ist.sirs.t05.sirsapp.Activities.HomeActivity;
+import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.CommunicationChannel;
+import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.InitialKey;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.RSA;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.SessionKey;
+import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.TimeStamps;
 
 public class Pair extends AsyncTask<Void, Void, SecretKey> {
 
@@ -67,7 +67,7 @@ public class Pair extends AsyncTask<Void, Void, SecretKey> {
 
             // Receive from the server the session key encrypted with the public key
             String serverPublicEncrypted = channel.readFromServer();
-            String[] parts = serverPublicEncrypted.split(".");
+            String[] parts = serverPublicEncrypted.split("\\.");
 
             TimeStamps ts = new TimeStamps();
             if(!ts.compareTimeStamp(parts[1])){
@@ -87,7 +87,7 @@ public class Pair extends AsyncTask<Void, Void, SecretKey> {
             e.printStackTrace();
         }
 
-        return (null);
+        return sessionKey;
     }
 
     @Override

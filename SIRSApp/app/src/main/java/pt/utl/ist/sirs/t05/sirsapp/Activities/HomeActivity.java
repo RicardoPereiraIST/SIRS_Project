@@ -1,5 +1,6 @@
 package pt.utl.ist.sirs.t05.sirsapp.Activities;
 
+import pt.utl.ist.sirs.t05.sirsapp.Activities.Settings.SettingsActivity;
 import pt.utl.ist.sirs.t05.sirsapp.R;
 
 import android.content.Intent;
@@ -66,8 +67,12 @@ public class HomeActivity extends AppCompatActivity  {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.about:
-                Intent changeActivity = new Intent(HomeActivity.this, AboutActivity.class);
-                HomeActivity.this.startActivity(changeActivity);
+                Intent aboutIntent = new Intent(HomeActivity.this, AboutActivity.class);
+                HomeActivity.this.startActivity(aboutIntent);
+                return true;
+            case R.id.settings:
+                Intent settingsIntent = new Intent(HomeActivity.this, SettingsActivity.class);
+                HomeActivity.this.startActivity(settingsIntent);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

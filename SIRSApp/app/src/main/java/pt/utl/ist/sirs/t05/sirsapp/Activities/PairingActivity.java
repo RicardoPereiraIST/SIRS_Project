@@ -27,6 +27,14 @@ public class PairingActivity extends AppCompatActivity  {
         toolbar.setTitle("Pairing");
         setSupportActionBar(toolbar);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
+
         Button saveButton = (Button)findViewById(R.id.save_button);
         saveButton.setOnClickListener(new View.OnClickListener() {
 
@@ -37,7 +45,7 @@ public class PairingActivity extends AppCompatActivity  {
                     Toast.makeText(view.getContext(), "Token saved!", Toast.LENGTH_SHORT).show();
 
                     Pair p = new Pair(tokenText.getText().toString());
-                    p.execute();
+                    p.execute(PairingActivity.this);
 
                     try {
                         SecretKey sessionKey = p.get();

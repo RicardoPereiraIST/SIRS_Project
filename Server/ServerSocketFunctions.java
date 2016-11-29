@@ -18,6 +18,13 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.net.URL;
+import java.net.URLConnection;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 public class ServerSocketFunctions extends Thread {
    private ServerSocket serverSocket;
@@ -60,8 +67,8 @@ public class ServerSocketFunctions extends Thread {
             sessionKey = generateSessionKey();
 
             String sessionKeyToSend = encryptWithPublicKey(sessionKey.getEncoded(), mobilePublicKey);
-            String timestamp = generateTimeStamp();
-            String dataToSend = sessionKeyToSend + "." + timestamp;
+            long timestamp = generateTimeStamp();
+            String dataToSend = sessionKeyToSend + "." + String.valueOf(timestamp);
 
             DataOutputStream out = new DataOutputStream(server.getOutputStream());
             out.writeUTF(dataToSend);
@@ -140,8 +147,8 @@ public class ServerSocketFunctions extends Thread {
    public void encryptAndSendNonce(String nonce, DataOutputStream out) throws Exception{
       byte[] encryptedNonce = encryptWithSessionKey(nonce, sessionKey);
       String encryptedNonceString = Base64.getMimeEncoder().encodeToString(encryptedNonce);
-      String timestamp = generateTimeStamp();
-      String dataToSend = encryptedNonceString + "." + timestamp;
+      long timestamp = generateTimeStamp();
+      String dataToSend = encryptedNonceString + "." + String.valueOf(timestamp);
       System.out.println("Sending the nonce...");
       out.writeUTF(dataToSend);
    }
@@ -152,7 +159,7 @@ public class ServerSocketFunctions extends Thread {
 
       System.out.println("Token is heere bois...");
       String[] parts = nonceString.split("\\.");
-      if(!compareTimeStamp(parts[1]))
+      if(!isWithinRange(Long.valueOf(parts[1]).longValue()))
          return 0;
 
       byte[] decodedNonce = Base64.getMimeDecoder().decode(parts[0]);
@@ -235,27 +242,46 @@ public class ServerSocketFunctions extends Thread {
    // -------------------------------------
 
    // ------ Timestamps -----------------
-   public String generateTimeStamp() throws Exception{
-      Calendar cal = Calendar.getInstance();
-      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss");
-      String time = sdf.format(cal.getTime());
-      return time;
+   public long generateTimeStamp() throws Exception{
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String[] timeStamp = new String[1];
+
+        new Thread()
+        {
+            public void run() {
+                try {
+                    URL obj = new URL("http://www.google.pt");
+                    URLConnection conn = obj.openConnection();
+
+                    Map<String, List<String>> map = conn.getHeaderFields();
+
+                    List<String> timeList = map.get("Date");
+                    String time = timeList.get(0).split(",")[1].replaceFirst(" ", "");
+
+                    timeStamp[0] = time;
+                    latch.countDown();
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+        latch.await();
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z");
+        Date date = sdf.parse(timeStamp[0]);
+
+        return date.getTime();
    }
 
-   public boolean compareTimeStamp(String timestamp) throws Exception{
-      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss");
-      Date receivedDate = sdf.parse(timestamp);
-      return isWithinRange(receivedDate);
-   }
 
-   public boolean isWithinRange(Date receivedDate) throws Exception{
-      String time = generateTimeStamp();
-      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd, HH:mm:ss");
-      Date date = sdf.parse(time);
-      
-      if(date.getTime() >= receivedDate.getTime() && date.getTime() <= receivedDate.getTime()+10000)
-         return true;
-      return false;
-   }
+      public boolean isWithinRange(long receivedDate) throws Exception{
+        long time = generateTimeStamp();
+
+        if(time >= receivedDate && time <= receivedDate+10000)
+           return true;
+
+        return false;
+      }
 
 }

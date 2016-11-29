@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Network Settings">
+
+        <EditTextPreference
+            android:defaultValue="192.168.1.136"
+            android:summary="192.168.1.136"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Set the server ip address"
+            android:key="edit_text_ip_address" />
+
+    </PreferenceCategory>
+
+
+</PreferenceScreen>

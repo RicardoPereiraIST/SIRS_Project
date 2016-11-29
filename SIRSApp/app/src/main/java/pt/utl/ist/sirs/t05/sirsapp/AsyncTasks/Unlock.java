@@ -1,6 +1,9 @@
 package pt.utl.ist.sirs.t05.sirsapp.AsyncTasks;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
@@ -15,7 +18,7 @@ import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.SessionKey;
 import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.TimeStamps;
 
-public class Unlock extends AsyncTask<Void, Void, Void> {
+public class Unlock extends AsyncTask<Context, Void, Void> {
 
     private SecretKey sessionKey;
     private SessionKey sessionKeyCipher;
@@ -42,8 +45,8 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
             String encryptedNonceString = Base64.encodeToString(encryptedNonce, Base64.DEFAULT);
             Log.d(Constant.DEBUG_TAG, "[OUT] Encrypted encoded nonce -> " + encryptedNonceString);
 
-            String timestamp = ts.generateTimeStamp();
-            String dataToSend = encryptedNonceString + "." + timestamp;
+            long timestamp = ts.generateTimeStamp();
+            String dataToSend = encryptedNonceString + "." + String.valueOf(timestamp);
 
             communication.writeToServer(dataToSend);
             Log.d(Constant.DEBUG_TAG, "[OUT] Sent");
@@ -59,7 +62,7 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
         try {
             String receivedNonce = communication.readFromServer();
             String[] parts = receivedNonce.split("\\.");
-            if(ts.compareTimeStamp(parts[1]) == false)
+            if(ts.isWithinRange(Long.valueOf(parts[1]).longValue()) == false)
                 return 0;
 
             byte[] decodedNonce = Base64.decode(parts[0], Base64.DEFAULT);
@@ -80,10 +83,14 @@ public class Unlock extends AsyncTask<Void, Void, Void> {
     }
 
     @Override
-    protected Void doInBackground(Void... unused) {
+    protected Void doInBackground(Context... params) {
+
+        Context context = params[0];
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String ipAddress = prefs.getString("edit_text_ip_address", "");
 
         try {
-            Socket client = new Socket(Constant.IP_ADDR, 6100);
+            Socket client = new Socket(ipAddress, 6100);
             CommunicationChannel channel = new CommunicationChannel(client);
 
             // Send challenge to server ------------------------------------

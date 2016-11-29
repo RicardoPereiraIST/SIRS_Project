@@ -1,6 +1,9 @@
 package pt.utl.ist.sirs.t05.sirsapp.AsyncTasks;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
 
@@ -17,7 +20,7 @@ import pt.utl.ist.sirs.t05.sirsapp.Crypto.RSA;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.SessionKey;
 import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.TimeStamps;
 
-public class Pair extends AsyncTask<Void, Void, SecretKey> {
+public class Pair extends AsyncTask<Context, Void, SecretKey> {
 
     private SecretKey initialKey;
     private SecretKey sessionKey;
@@ -47,15 +50,19 @@ public class Pair extends AsyncTask<Void, Void, SecretKey> {
     }
 
     @Override
-    protected SecretKey doInBackground(Void... unused) {
+    protected SecretKey doInBackground(Context... params) {
+
+        Context context = params[0];
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String ipAddress = prefs.getString("edit_text_ip_address", "");
 
         try {
             // Generate the initial key and the RSA pair
             generateInitialKeys();
 
             // Connect to the client
-            Log.d(Constant.DEBUG_TAG, "[Socket] Connecting to " + Constant.IP_ADDR + " on port " + Constant.PORT);
-            Socket client = new Socket(Constant.IP_ADDR, Constant.PORT);
+            Log.d(Constant.DEBUG_TAG, "[Socket] Connecting to " + ipAddress + " on port " + Constant.PORT);
+            Socket client = new Socket(ipAddress, Constant.PORT);
             CommunicationChannel channel = new CommunicationChannel(client);
             Log.d(Constant.DEBUG_TAG, "[Socket] Just connected to " + client.getRemoteSocketAddress());
 
@@ -70,7 +77,7 @@ public class Pair extends AsyncTask<Void, Void, SecretKey> {
             String[] parts = serverPublicEncrypted.split("\\.");
 
             TimeStamps ts = new TimeStamps();
-            if(!ts.compareTimeStamp(parts[1])){
+            if(!ts.isWithinRange(Long.valueOf(parts[1]).longValue())){
                 client.close();
             }
 

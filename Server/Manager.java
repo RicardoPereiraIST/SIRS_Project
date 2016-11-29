@@ -111,7 +111,7 @@ public class Manager
       exit();
     }
     else{
-      System.out.println("Unknown Command. Try again");
+      System.out.println("Unknown Command. Try again\n");
       init();
     }
   }
@@ -156,7 +156,7 @@ public class Manager
 
   public void display() throws Exception{
     Console console = System.console();
-    System.out.println("There are 6 commands: \nPairing\nLogout\nExit");  //\nCreate\nRead\nWrite\n
+    System.out.println("There are 3 commands: \nPairing\nLogout\nExit");  //\nCreate\nRead\nWrite\n
     String command = console.readLine("Enter your command: ");
     /*if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]") || command.matches("[Cc]")){
       fo.createFile(curUser);
@@ -181,7 +181,7 @@ public class Manager
       exit();
     }
     else{
-      System.out.println("Unknown Command. Try again");
+      System.out.println("Unknown Command. Try again\n");
       display();
     }
   }
@@ -200,10 +200,20 @@ public class Manager
     char passwordArray[] = console.readPassword("Enter your password: ");
     String password = new String(passwordArray);
 
+    if(username.trim().isEmpty()){
+      System.out.println("Username needs characters\n");
+      return false;
+    }
+
+    if(password.trim().isEmpty()){
+      System.out.println("Password needs characters\n");
+      return false;
+    }
+
     try{
       for(int i = 0; i<users.size(); i++){
         if(users.get(i).getUsername().equals(username)){
-          System.out.println("Username already exists.\nChoose another.");
+          System.out.println("Username already exists.\nChoose another.\n");
           return false;
         }
       }
@@ -224,7 +234,7 @@ public class Manager
     catch(Exception e){
       e.printStackTrace();
     }
-    System.out.println("Registration successful");
+    System.out.println("Registration successful\n");
     return true;
   }
 
@@ -246,13 +256,13 @@ public class Manager
     }
 
     else{
-      System.out.println("Try again");
+      System.out.println("Try again\n");
       return false;
     }    
   }
 
   public void pairing() throws Exception{
-    System.out.println("Paired");
+    System.out.println("Paired\n");
     // DEMO
     Thread thread = new ServerSocketFunctions(6000, "espargueteabolonhesa");
     thread.start();
@@ -274,14 +284,14 @@ public class Manager
         if(parts[0].equals(username) && parts[2].equals(crypto.encryptPassword(password+parts[1]))){   
         	byte[] salt = parts[1].getBytes();
         	key = crypto.generateEncryptionKey(password, salt);
-        	System.out.println("You are logged in!");
+        	System.out.println("You are logged in!\n");
         	br.close();
         	return true;
         }
         line = br.readLine();
       }
       br.close();
-      System.out.println("Wrong Credentials!");
+      System.out.println("Wrong Credentials!\n");
     }
     catch(Exception e){
       e.printStackTrace();

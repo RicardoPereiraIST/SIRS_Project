@@ -72,24 +72,20 @@ public class Manager
         e.printStackTrace();
       }
     }
-
-    File f3 = new File(".PublicKeys.txt");
-    if(!f3.exists()){
-      try{
-        f3.createNewFile();
-      }
-      catch(Exception e){
-        e.printStackTrace();
-      }
-    }
   }
 
   public void init() throws Exception{
     Console console = System.console();
     System.out.println("Welcome to our filesystem!");
-    System.out.println("There are 3 commands:\nRegister\nLogin\nExit");
+    System.out.println("There are 3 commands:\n1-Register\n2-Login\n3-Exit");
     String command = console.readLine("Enter your command: ");
-    if(command.matches("[Ll][Oo][Gg][Ii][Nn]") || command.matches("[Ll]")){
+    if(command.matches("1")){
+      boolean registed = registration();
+      while(!registed)
+          registed = registration();
+      init();
+    }
+    else if(command.matches("2")){
         if(login()){
           unlock();
           display();
@@ -98,12 +94,6 @@ public class Manager
             init();
         }
     }
-    else if(command.matches("[Rr][Ee][Gg][Ii][Ss][Tt][Ee][Rr]") || command.matches("[Rr]")){
-        boolean registed = registration();
-        while(!registed)
-            registed = registration();
-        init();
-    }
     /*else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]")){
       if(instaPairing()){
         //call pairing function with username? (return username)
@@ -111,7 +101,7 @@ public class Manager
       else
         init();
     }*/
-    else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]")){
+    else if(command.matches("3")){
       logout();
       exit();
     }
@@ -163,7 +153,7 @@ public class Manager
 
   public void display() throws Exception{
     Console console = System.console();
-    System.out.println("There are 3 commands: \nPairing\nLogout\nExit");  //\nCreate\nRead\nWrite\n
+    System.out.println("There are 3 commands: \n1-Lock\n2-Unlock\n3-Pairing\n4-Logout\n5-Exit");  //\nCreate\nRead\nWrite\n
     String command = console.readLine("Enter your command: ");
     /*if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]") || command.matches("[Cc]")){
       fo.createFile(curUser);
@@ -177,13 +167,23 @@ public class Manager
       fo.writeFile(curUser);
       display();
     }*/
-    if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]"))
+    if(command.matches("1")){
+      lock();
+      System.out.println("Files locked\n");
+      display();
+    }
+    else if(command.matches("2")){
+      unlock();
+      System.out.println("Files unlocked\n");
+      display();
+    }
+    else if(command.matches("3"))
       pairing();
-    else if(command.matches("[Ll][Oo][Gg][Oo][Uu][Tt]") || command.matches("[Ll]")){
+    else if(command.matches("4")){
       logout();
       init();
     }
-    else if(command.matches("[Ee][Xx][Ii][Tt]") || command.matches("[Ee]")){
+    else if(command.matches("5")){
       logout();
       exit();
     }

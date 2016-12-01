@@ -16,6 +16,12 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.FileOutputStream;
+import java.io.FileInputStream;
+import javax.crypto.CipherOutputStream;
+
 public class Crypto {
 	
 	  public SecretKey generateEncryptionKey(String password, byte[] salt) throws Exception{
@@ -61,35 +67,49 @@ public class Crypto {
 		  }
 
 		  public void encryptFile(File f, SecretKey key, IvParameterSpec iv) throws Exception{
-		    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        	FileInputStream file = new FileInputStream(f.getPath().toString());
+
+        	String[] dirs = f.getPath().toString().split("\\\\");
+        	String[] files = dirs[2].split("\\.");
+
+        	FileOutputStream outStream = new FileOutputStream(dirs[0]+"\\"+dirs[1]+"\\"+files[0]+"_enc."+files[1]);
+        	Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		    cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-
-		    BufferedReader br = new BufferedReader(new FileReader(f));
-
-
-		    StringBuffer stringBuffer = new StringBuffer();
-		    String line = null;
-
-		    while((line = br.readLine())!=null){
-		      stringBuffer.append(line).append("\n");
+		    CipherOutputStream cos = new CipherOutputStream(outStream, cipher);
+		    byte[] buf = new byte[1024];
+		    int read;
+		    while((read=file.read(buf))!=-1){
+		    	cos.write(buf, 0, read);
 		    }
+		    file.close();
+		    outStream.flush();
+		    cos.close();
 
-		    byte[] encryptedText = cipher.doFinal(stringBuffer.toString().getBytes());
-		    br.close();
-		    Files.write(f.toPath(), encryptedText);
+		    f.delete();
 		  }
 
 		  public void decryptFile(File f, SecretKey key, IvParameterSpec iv) throws Exception{
-		    Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		  	String[] dirs = f.getPath().toString().split("\\\\");
+        	String[] files = dirs[2].split("\\.");
+        	String[] enc = files[0].split("\\_");
+        	FileInputStream file = new FileInputStream(f.getPath().toString());
+
+        	FileOutputStream outStream = new FileOutputStream(dirs[0]+"\\"+dirs[1]+"\\"+enc[0]+"."+files[1]);
+
+
+        	Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		    cipher.init(Cipher.DECRYPT_MODE, key, iv);
+		    CipherOutputStream cos = new CipherOutputStream(outStream, cipher);
+		    byte[] buf = new byte[1024];
+		    int read;
+		    while((read=file.read(buf))!=-1){
+		    	cos.write(buf, 0, read);
+		    }
+		    file.close();
+		    outStream.flush();
+		    cos.close();
 
-		    byte[] data = Files.readAllBytes(f.toPath());
-
-		    String decryptedText = new String(cipher.doFinal(data), "UTF-8");
-		    FileWriter fw = new FileWriter(f, false);
-		    BufferedWriter bw = new BufferedWriter(fw);
-		    bw.write(decryptedText);
-		    bw.close();
+		    f.delete();
 		  }
 
 }

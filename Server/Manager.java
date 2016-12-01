@@ -122,15 +122,17 @@ public class Manager
   public void unlock() throws Exception{
     File dir = new File("Files/" + curUser.getUsername() + "/");
     if(dir.exists())
-      for(File f : dir.listFiles())
-        crypto.decryptFile(f, key, iv);
+      for(File f : dir.listFiles()){
+        crypto.decryptFile(f,key,iv);
+      }
   }
 
   public void lock() throws Exception{
     File dir = new File("Files/" + curUser.getUsername() + "/");
     if(dir.exists())
-      for(File f : dir.listFiles())
-        crypto.encryptFile(f, key, iv); 
+      for(File f : dir.listFiles()){
+        crypto.encryptFile(f,key,iv);
+      }
   }
 
   /*public boolean instaPairing(){

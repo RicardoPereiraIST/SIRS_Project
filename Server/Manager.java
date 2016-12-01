@@ -87,7 +87,8 @@ public class Manager
     }
     else if(command.matches("2")){
         if(login()){
-          unlock();
+          fo.unlock(curUser, key, iv);
+          isLocked = false;
           display();
         }
         else{
@@ -109,22 +110,6 @@ public class Manager
       System.out.println("Unknown Command. Try again\n");
       init();
     }
-  }
-
-  public void unlock() throws Exception{
-    File dir = new File("Files/" + curUser.getUsername() + "/");
-    if(dir.exists())
-      for(File f : dir.listFiles()){
-        crypto.decryptFile(f,key,iv);
-      }
-  }
-
-  public void lock() throws Exception{
-    File dir = new File("Files/" + curUser.getUsername() + "/");
-    if(dir.exists())
-      for(File f : dir.listFiles()){
-        crypto.encryptFile(f,key,iv);
-      }
   }
 
   /*public boolean instaPairing(){
@@ -153,7 +138,7 @@ public class Manager
 
   public void display() throws Exception{
     Console console = System.console();
-    System.out.println("There are 3 commands: \n1-Lock\n2-Unlock\n3-Pairing\n4-Logout\n5-Exit");  //\nCreate\nRead\nWrite\n
+    System.out.println("There are 5 commands: \n1-Lock\n2-Unlock\n3-Pairing\n4-Create new Socket\n5-Logout\n6-Exit");  //\nCreate\nRead\nWrite\n
     String command = console.readLine("Enter your command: ");
     /*if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]") || command.matches("[Cc]")){
       fo.createFile(curUser);
@@ -168,22 +153,34 @@ public class Manager
       display();
     }*/
     if(command.matches("1")){
-      lock();
-      System.out.println("Files locked\n");
+      if(!isLocked){
+        fo.lock(curUser, key, iv);
+        System.out.println("Files locked\n");
+        isLocked = true;
+      }
+      else
+        System.out.println("Files already locked\n");
       display();
     }
     else if(command.matches("2")){
-      unlock();
-      System.out.println("Files unlocked\n");
+      if(isLocked){
+        fo.unlock(curUser, key, iv);
+        System.out.println("Files unlocked\n");
+        isLocked = false;
+      }
+      else
+        System.out.println("Files already unlocked\n");
       display();
     }
     else if(command.matches("3"))
       pairing();
-    else if(command.matches("4")){
+    else if(command.matches("4"))
+      listenToUnlockRequest(sessionKey);
+    else if(command.matches("5")){
       logout();
       init();
     }
-    else if(command.matches("5")){
+    else if(command.matches("6")){
       logout();
       exit();
     }
@@ -195,7 +192,8 @@ public class Manager
 
   public void logout() throws Exception{
     if(curUser != null){
-      lock();
+      fo.lock(curUser, key, iv);
+      isLocked = true;
     }
     curUser = null;
   }
@@ -289,7 +287,7 @@ public class Manager
     unlock.join();
 
     if(unlock.getLockVar() == true){
-      lock();
+      fo.lock(curUser, key, iv);
       isLocked = true;
     }
 
@@ -306,7 +304,7 @@ public class Manager
     unlock.join();
 
     if(unlock.getLockVar() == true){
-      lock();
+      fo.lock(curUser, key, iv);
       isLocked = true;
     }
 

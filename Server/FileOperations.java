@@ -1,4 +1,7 @@
 import java.io.*;
+import java.security.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
 
 public class FileOperations
 {
@@ -92,5 +95,23 @@ public class FileOperations
 		  br.close();
 		}
 	}
+
+	public void unlock(User curUser, SecretKey key, IvParameterSpec iv) throws Exception{
+		Crypto crypto = new Crypto();
+	    File dir = new File("Files/" + curUser.getUsername() + "/");
+	    if(dir.exists())
+	      for(File f : dir.listFiles()){
+	        crypto.decryptFile(f,key,iv);
+	      }
+  	}
+
+  	public void lock(User curUser, SecretKey key, IvParameterSpec iv) throws Exception{
+  		Crypto crypto = new Crypto();
+	    File dir = new File("Files/" + curUser.getUsername() + "/");
+	    if(dir.exists())
+	      for(File f : dir.listFiles()){
+	        crypto.encryptFile(f,key,iv);
+	      }
+  	}
 
 }

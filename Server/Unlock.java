@@ -38,7 +38,7 @@ public class Unlock extends Thread {
       this.lock = lock;
     }
 
-    public getLockVar(){
+    public Boolean getLockVar(){
       return this.lock;
     }
 

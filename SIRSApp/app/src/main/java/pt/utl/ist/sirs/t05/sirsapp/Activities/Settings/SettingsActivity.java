@@ -1,9 +1,6 @@
 package pt.utl.ist.sirs.t05.sirsapp.Activities.Settings;
 
-
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;

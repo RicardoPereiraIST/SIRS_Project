@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,8 +23,6 @@ public class HomeActivity extends AppCompatActivity  {
 
         Intent pairIntent = getIntent();
         this.keyString = pairIntent.getStringExtra("SessionKey");
-        if(keyString != null)
-            Log.d("Home keystring:", keyString);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         toolbar.setTitle("Home");

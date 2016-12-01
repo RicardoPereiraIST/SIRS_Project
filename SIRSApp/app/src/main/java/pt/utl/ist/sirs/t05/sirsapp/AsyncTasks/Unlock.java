@@ -71,6 +71,8 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
             Log.d(Constant.DEBUG_TAG, "[OUT] Nonce received  -> " + decrypted);
         }catch(IOException e){
             Log.e("ERROR", "Error reading the nonce from the server");
+            return -1;
+
         }catch(Exception e){
             Log.e("ERROR", "Error decrypting the nonce with the session key");
         }
@@ -120,8 +122,14 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
                 nonce = receiveAndDecryptNonce(channel);
 
                 if(nonce == 0){
-                  Log.d(Constant.DEBUG_TAG, "Replay attack incoming!!!");
+                  Log.d(Constant.DEBUG_TAG, "Replay attack detected!");
                   client.close();
+                }
+
+                if(nonce == -1){
+                    Log.d(Constant.DEBUG_TAG, "You are out of the network range!");
+                    client.close();
+                    return null;
                 }
 
                 // Calculate
@@ -135,6 +143,6 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
             e.printStackTrace();
         }
 
-        return (null);
+        return null;
     }
 }

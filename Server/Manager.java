@@ -12,11 +12,13 @@ public class Manager
   private List<User> users = new ArrayList<User>();
   private User curUser;
   private SecretKey key;
+  private SecretKey sessionKey;
   private IvParameterSpec iv;
   private Crypto crypto = new Crypto();
   private FileOperations fo = new FileOperations();
 
   private Unlock unlock;
+  private Boolean isLocked;
 
   public Manager(){
     File dir = new File("Files");
@@ -277,15 +279,35 @@ public class Manager
     pair.start();
     pair.join();
 
-    System.out.println("Pinging smartphone...");
+    sessionKey = pair.getSessionKey();
+
+    System.out.println("Waiting for smartphone...");
     System.out.println("This allows the phone to unlock the files");
 
-    unlock = new Unlock(6100, pair.getSessionKey(), false);
+    unlock = new Unlock(6100, sessionKey, false);
     unlock.start();
     unlock.join();
 
     if(unlock.getLockVar() == true){
       lock();
+      isLocked = true;
+    }
+
+    display();
+    System.out.println();
+  }
+
+  public void listenToUnlockRequest(SecretKey sessionKey) throws Exception{
+    System.out.println("Waiting for smartphone...");
+    System.out.println("This allows the phone to unlock the files");
+
+    unlock = new Unlock(6100, sessionKey, true);
+    unlock.start();
+    unlock.join();
+
+    if(unlock.getLockVar() == true){
+      lock();
+      isLocked = true;
     }
 
     display();

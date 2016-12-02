@@ -48,6 +48,8 @@ public class Unlock extends Thread {
             DataInputStream in = new DataInputStream(server.getInputStream());
             DataOutputStream out = new DataOutputStream(server.getOutputStream());
 
+            server.setSoTimeout(1000);
+
             //Respond to the client challenge
             long nonce = receiveAndDecryptNonce(in);
 
@@ -92,12 +94,12 @@ public class Unlock extends Thread {
                   server.close();
                   return;
                }
-               // Sleeping 30 seconds
-               Thread.sleep(30000);
+               // Sleeping 5 seconds
+               Thread.sleep(5000);
             }
 
             
-         }catch(SocketTimeoutException s) {
+         }catch(SocketException s) {
             System.out.println("Client is away, locking files!");
             lock = true;
             return;

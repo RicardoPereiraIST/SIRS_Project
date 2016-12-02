@@ -95,13 +95,7 @@ public class Manager
             init();
         }
     }
-    /*else if(command.matches("[Pp][Aa][Ii][Rr][Ii][Nn][Gg]") || command.matches("[Pp]")){
-      if(instaPairing()){
-        //call pairing function with username? (return username)
-      }
-      else
-        init();
-    }*/
+
     else if(command.matches("3")){
       logout();
       exit();
@@ -112,46 +106,12 @@ public class Manager
     }
   }
 
-  /*public boolean instaPairing(){
-    Console console = System.console();
-    String username = console.readLine("What is your username?\n");
-    try{
-      BufferedReader br = new BufferedReader(new FileReader(".PublicKeys.txt"));
-      String line = br.readLine();
-
-      while(line != null){
-        String[] parts = line.split(" ");
-        if(parts[0].equals(username)){
-          br.close();
-          return true;
-        }
-        line = br.readLine();
-      }
-      br.close();
-      System.out.println("That user didn't pair yet");
-    }
-    catch(Exception e){
-      e.printStackTrace();
-    }
-    return false;
-  }*/
 
   public void display() throws Exception{
     Console console = System.console();
     System.out.println("There are 5 commands: \n1-Lock\n2-Unlock\n3-Pairing\n4-Create new Socket\n5-Logout\n6-Exit");  //\nCreate\nRead\nWrite\n
     String command = console.readLine("Enter your command: ");
-    /*if(command.matches("[Cc][Rr][Ee][Aa][Tt][Ee]") || command.matches("[Cc]")){
-      fo.createFile(curUser);
-      display();
-    }
-    else if(command.matches("[Rr][Ee][Aa][Dd]") || command.matches("[Rr]")){
-      fo.readFile(curUser);
-      display();
-    }
-    else if(command.matches("[Ww][Rr][Ii][Tt][Ee]") || command.matches("[Ww]")){
-      fo.writeFile(curUser);
-      display();
-    }*/
+
     if(command.matches("1")){
       if(!isLocked){
         fo.lock(curUser, key, iv);
@@ -279,27 +239,34 @@ public class Manager
 
     sessionKey = pair.getSessionKey();
 
-    System.out.println("Waiting for smartphone...");
-    System.out.println("This allows the phone to unlock the files");
-
-    unlock = new Unlock(6100, sessionKey, false);
-    unlock.start();
-    unlock.join();
-
-    if(unlock.getLockVar() == true){
-      fo.lock(curUser, key, iv);
-      isLocked = true;
+    String option = "";
+    Console console = System.console();
+    while(!option.equals("yes") && !option.equals("no")){
+      option = console.readLine("Do you want to pair the phone right now? (yes/no) ");
     }
 
-    display();
-    System.out.println();
+    if(option.equals("yes")){
+      listenToUnlockRequest(sessionKey);
+    }else{
+      System.out.println("Very well.");
+      display();
+    }
+
+
   }
 
   public void listenToUnlockRequest(SecretKey sessionKey) throws Exception{
+
+    if (sessionKey == null){
+      System.out.println("The phone is not yet paired!");
+      display();
+      return;
+    }
+
     System.out.println("Waiting for smartphone...");
     System.out.println("This allows the phone to unlock the files");
 
-    unlock = new Unlock(6100, sessionKey, true);
+    unlock = new Unlock(6100, sessionKey, isLocked);
     unlock.start();
     unlock.join();
 

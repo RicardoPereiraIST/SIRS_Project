@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 
 import pt.utl.ist.sirs.t05.sirsapp.R;
 
@@ -15,6 +16,10 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
     {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.fragment_settings);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this.getContext());
+        Preference ipPreference = findPreference(KEY_IP_ADDRESS);
+        ipPreference.setSummary(preferences.getString(KEY_IP_ADDRESS, ""));
     }
 
     @Override

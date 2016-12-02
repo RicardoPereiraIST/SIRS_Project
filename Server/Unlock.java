@@ -30,16 +30,18 @@ public class Unlock extends Thread {
    private ServerSocket serverSocket;
 
    private SecretKey sessionKey;
-   private Boolean lock;
+   private User currentUser;
+   private IvParameterSpec iv;
+   private Boolean isLocked;
+
+   private FileOperations fo = new FileOperations();
  
-   public Unlock(int port, SecretKey sessionKey, Boolean lock) throws IOException {
+   public Unlock(int port, SecretKey sessionKey, Boolean isLocked, User currentUser, IvParameterSpec iv) throws IOException {
       this.serverSocket = new ServerSocket(port);
       this.sessionKey = sessionKey;
-      this.lock = lock;
-    }
-
-    public Boolean getLockVar(){
-      return this.lock;
+      this.currentUser = currentUser;
+      this.iv = iv;
+      this.isLocked = isLocked;
     }
 
    public void run() {
@@ -67,9 +69,9 @@ public class Unlock extends Thread {
             encryptAndSendNonce(stringNonce, out);
 
 
-            // if (lock == true){
-            //   UnlockFilesOnManager();
-            // }
+             if (isLocked == true){
+               fo.unlock(currentUser, sessionKey, iv);
+             }
 
             // ------------ START CHALLENGES ----------------------------------
             while(true){
@@ -94,14 +96,21 @@ public class Unlock extends Thread {
                   server.close();
                   return;
                }
+
                // Sleeping 5 seconds
                Thread.sleep(5000);
             }
 
             
-         }catch(SocketException s) {
+         }catch(SocketException | SocketTimeoutException s) {
             System.out.println("Client is away, locking files!");
-            lock = true;
+            try{
+            serverSocket.close();
+            fo.lock(currentUser, sessionKey, iv);
+          }catch(Exception e){
+            System.out.println("There was an error in the thread");
+            return;
+          }
             return;
 
          }catch(IOException e) {

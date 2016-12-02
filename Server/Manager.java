@@ -109,7 +109,7 @@ public class Manager
 
   public void display() throws Exception{
     Console console = System.console();
-    System.out.println("There are 5 commands: \n1-Lock\n2-Unlock\n3-Pairing\n4-Create new Socket\n5-Logout\n6-Exit");  //\nCreate\nRead\nWrite\n
+    System.out.println("There are 5 commands: \n1-Lock\n2-Pairing\n3-Unlock files with Phone\n4-Logout\n5-Exit");  //\nCreate\nRead\nWrite\n
     String command = console.readLine("Enter your command: ");
 
     if(command.matches("1")){
@@ -122,7 +122,7 @@ public class Manager
         System.out.println("Files already locked\n");
       display();
     }
-    else if(command.matches("2")){
+  /*  else if(command.matches("2")){
       if(isLocked){
         fo.unlock(curUser, key, iv);
         System.out.println("Files unlocked\n");
@@ -131,16 +131,16 @@ public class Manager
       else
         System.out.println("Files already unlocked\n");
       display();
-    }
-    else if(command.matches("3"))
+    }*/
+    else if(command.matches("2"))
       pairing();
-    else if(command.matches("4"))
-      listenToUnlockRequest(sessionKey);
-    else if(command.matches("5")){
+    else if(command.matches("3"))
+      listenToUnlockRequest();
+    else if(command.matches("4")){
       logout();
       init();
     }
-    else if(command.matches("6")){
+    else if(command.matches("5")){
       logout();
       exit();
     }
@@ -246,7 +246,7 @@ public class Manager
     }
 
     if(option.equals("yes")){
-      listenToUnlockRequest(sessionKey);
+      listenToUnlockRequest();
     }else{
       System.out.println("Very well.");
       display();
@@ -255,7 +255,7 @@ public class Manager
 
   }
 
-  public void listenToUnlockRequest(SecretKey sessionKey) throws Exception{
+  public void listenToUnlockRequest() throws Exception{
 
     if (sessionKey == null){
       System.out.println("The phone is not yet paired!");
@@ -266,14 +266,9 @@ public class Manager
     System.out.println("Waiting for smartphone...");
     System.out.println("This allows the phone to unlock the files");
 
-    unlock = new Unlock(6100, sessionKey, isLocked);
+    unlock = new Unlock(6100, sessionKey, isLocked, curUser, iv);
     unlock.start();
     unlock.join();
-
-    if(unlock.getLockVar() == true){
-      fo.lock(curUser, key, iv);
-      isLocked = true;
-    }
 
     display();
     System.out.println();

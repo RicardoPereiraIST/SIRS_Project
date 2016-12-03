@@ -95,6 +95,8 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
             Socket client = new Socket(ipAddress, 6100);
             CommunicationChannel channel = new CommunicationChannel(client);
 
+            Constant.unlockSocketOpen = true;
+
             // Send challenge to server ------------------------------------
             String nonceString = generateNonce();
             encryptAndSendNonce(nonceString, channel);
@@ -104,6 +106,7 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
 
             if(nonce == 0){
                   Log.d(Constant.DEBUG_TAG, "Replay attack incoming!!!");
+                  Constant.unlockSocketOpen = false;
                   client.close();
             }
 
@@ -111,6 +114,7 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
                 Log.d(Constant.DEBUG_TAG, "Nonce is correct, proceed");
             }else{
                 Log.w(Constant.DEBUG_TAG, "Something is wrong, closing the connection");
+                Constant.unlockSocketOpen = false;
                 client.close();
                 return null;
             }
@@ -123,11 +127,13 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
 
                 if(nonce == 0){
                   Log.d(Constant.DEBUG_TAG, "Replay attack detected!");
+                    Constant.unlockSocketOpen = false;
                   client.close();
                 }
 
                 if(nonce == -1){
                     Log.d(Constant.DEBUG_TAG, "You are out of the network range!");
+                    Constant.unlockSocketOpen = false;
                     client.close();
                     return null;
                 }

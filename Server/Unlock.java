@@ -30,18 +30,18 @@ public class Unlock extends Thread {
    private ServerSocket serverSocket;
 
    private SecretKey sessionKey;
+   private SecretKey fileKey;
    private User currentUser;
    private IvParameterSpec iv;
-   private Boolean isLocked;
 
    private FileOperations fo = new FileOperations();
  
-   public Unlock(int port, SecretKey sessionKey, Boolean isLocked, User currentUser, IvParameterSpec iv) throws IOException {
+   public Unlock(int port, SecretKey sessionKey, User currentUser, IvParameterSpec iv, SecretKey fileKey) throws IOException {
       this.serverSocket = new ServerSocket(port);
       this.sessionKey = sessionKey;
       this.currentUser = currentUser;
       this.iv = iv;
-      this.isLocked = isLocked;
+      this.fileKey = fileKey;
     }
 
    public void run() {
@@ -69,8 +69,8 @@ public class Unlock extends Thread {
             encryptAndSendNonce(stringNonce, out);
 
 
-             if (isLocked == true){
-               fo.unlock(currentUser, sessionKey, iv);
+             if (Manager.isLocked == true){
+               fo.unlock(currentUser, fileKey, iv);
              }
 
             // ------------ START CHALLENGES ----------------------------------
@@ -102,20 +102,16 @@ public class Unlock extends Thread {
             }
 
             
-         }catch(SocketException | SocketTimeoutException s) {
+         }catch(IOException s) {
             System.out.println("Client is away, locking files!");
             try{
             serverSocket.close();
-            fo.lock(currentUser, sessionKey, iv);
+            fo.lock(currentUser, fileKey, iv);
           }catch(Exception e){
             System.out.println("There was an error in the thread");
             return;
           }
-            return;
-
-         }catch(IOException e) {
-            e.printStackTrace();
-         }catch(Exception e){
+          }catch(Exception e){
             e.printStackTrace();
          }
       }

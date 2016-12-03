@@ -76,10 +76,20 @@ public class Pair extends Thread {
             DataOutputStream out = new DataOutputStream(server.getOutputStream());
             out.writeUTF(dataToSend);
 
-            server.close();
+            serverSocket.close();
      
          }catch(SocketTimeoutException s) {
             System.out.println("Socket timed out!");
+         }catch(javax.crypto.BadPaddingException e){
+            System.out.println("The token appears to be incorrect! Try again!");
+            sessionKey = null;
+            try{
+              serverSocket.close();
+            }catch(Exception z){
+              System.out.println("Failed to close socket!");
+              return;
+            }
+            return;
          }catch(IOException e) {
             e.printStackTrace();
          }catch(Exception e){

@@ -1,6 +1,7 @@
 package pt.utl.ist.sirs.t05.sirsapp.Activities;
 
 import pt.utl.ist.sirs.t05.sirsapp.AsyncTasks.Pair;
+import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.R;
 
 import android.content.Intent;
@@ -18,6 +19,7 @@ import javax.crypto.SecretKey;
 
 
 public class PairingActivity extends AppCompatActivity  {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +51,11 @@ public class PairingActivity extends AppCompatActivity  {
 
                     try {
                         SecretKey sessionKey = p.get();
+                        if(sessionKey == null){
+                            Intent changeActivity = new Intent(PairingActivity.this, HomeActivity.class);
+                            changeActivity.putExtra("Error", "Error");
+                            PairingActivity.this.startActivity(changeActivity);
+                        }
                         String keyString = Base64.encodeToString(sessionKey.getEncoded(), Base64.DEFAULT);
                         Log.d("Paring keyString: ", keyString);
                         Intent changeActivity = new Intent(PairingActivity.this, HomeActivity.class);

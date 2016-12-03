@@ -1,6 +1,7 @@
 package pt.utl.ist.sirs.t05.sirsapp.Activities;
 
 import pt.utl.ist.sirs.t05.sirsapp.Activities.Settings.SettingsActivity;
+import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.R;
 
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 public class HomeActivity extends AppCompatActivity  {
     private String keyString;
+    private String errorString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,7 +25,11 @@ public class HomeActivity extends AppCompatActivity  {
 
         Intent pairIntent = getIntent();
         this.keyString = pairIntent.getStringExtra("SessionKey");
+        this.errorString = pairIntent.getStringExtra("Error");
 
+        if(errorString != null && errorString.equals("Error")){
+            Toast.makeText(HomeActivity.this, "Token appears to be incorrect!", Toast.LENGTH_LONG).show();
+        }
         Toolbar toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         toolbar.setTitle("Home");
         setSupportActionBar(toolbar);
@@ -42,10 +48,12 @@ public class HomeActivity extends AppCompatActivity  {
         unlock_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(keyString != null) {
+                if(keyString != null && Constant.unlockSocketOpen == false) {
                     Intent changeActivity = new Intent(HomeActivity.this, UnlockActivity.class);
                     changeActivity.putExtra("SessionKey", keyString);
                     HomeActivity.this.startActivity(changeActivity);
+                }else if(Constant.unlockSocketOpen == true){
+                    Toast.makeText(HomeActivity.this, "There is an ongoing connection !", Toast.LENGTH_LONG).show();
                 }else{
                     Toast.makeText(HomeActivity.this, "Phone has to be paired !", Toast.LENGTH_LONG).show();
                 }

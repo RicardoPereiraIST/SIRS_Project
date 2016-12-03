@@ -18,7 +18,7 @@ public class Manager
   private FileOperations fo = new FileOperations();
 
   private Unlock unlock;
-  private Boolean isLocked;
+  public static Boolean isLocked;
 
   public Manager(){
     File dir = new File("Files");
@@ -88,7 +88,6 @@ public class Manager
     else if(command.matches("2")){
         if(login()){
           fo.unlock(curUser, key, iv);
-          isLocked = false;
           display();
         }
         else{
@@ -113,10 +112,9 @@ public class Manager
     String command = console.readLine("Enter your command: ");
 
     if(command.matches("1")){
-      if(!isLocked){
+      if(isLocked == false){
         fo.lock(curUser, key, iv);
         System.out.println("Files locked\n");
-        isLocked = true;
       }
       else
         System.out.println("Files already locked\n");
@@ -151,9 +149,8 @@ public class Manager
   }
 
   public void logout() throws Exception{
-    if(curUser != null){
+    if(curUser != null && isLocked == false){
       fo.lock(curUser, key, iv);
-      isLocked = true;
     }
     curUser = null;
   }
@@ -239,6 +236,11 @@ public class Manager
 
     sessionKey = pair.getSessionKey();
 
+    if(sessionKey == null){
+      display();
+      return;
+    }
+
     String option = "";
     Console console = System.console();
     while(!option.equals("yes") && !option.equals("no")){
@@ -266,7 +268,7 @@ public class Manager
     System.out.println("Waiting for smartphone...");
     System.out.println("This allows the phone to unlock the files");
 
-    unlock = new Unlock(6100, sessionKey, isLocked, curUser, iv);
+    unlock = new Unlock(6100, sessionKey, curUser, iv, key);
     unlock.start();
     unlock.join();
 

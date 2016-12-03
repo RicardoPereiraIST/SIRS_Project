@@ -6,13 +6,16 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import pt.utl.ist.sirs.t05.sirsapp.Activities.HomeActivity;
 import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.CommunicationChannel;
 import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.InitialKey;
@@ -45,7 +48,7 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
             this.rsaCipher = new RSA();
             this.publicKey = rsaCipher.getKeyPair().getPublic();
         }catch (Exception e){
-            Log.e("ERROR", "Error generating RSA keys");
+            Log.e("ERROR", "Error generating keys");
         }
     }
 
@@ -55,6 +58,7 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
         Context context = params[0];
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String ipAddress = prefs.getString("edit_text_ip_address", "");
+        Socket client = null;
 
         try {
             // Generate the initial key and the RSA pair
@@ -62,22 +66,25 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
 
             // Connect to the client
             Log.d(Constant.DEBUG_TAG, "[Socket] Connecting to " + ipAddress + " on port " + Constant.PORT);
-            Socket client = new Socket(ipAddress, Constant.PORT);
+            client = new Socket(ipAddress, Constant.PORT);
             CommunicationChannel channel = new CommunicationChannel(client);
             Log.d(Constant.DEBUG_TAG, "[Socket] Just connected to " + client.getRemoteSocketAddress());
 
             // Encrypt public key with the initial key
             byte[] encryptedPublicKey = initialKeyCipher.encryptWithWeakKey(publicKey.getEncoded(), initialKey);
-            Log.d(Constant.DEBUG_TAG,"[OUT] Public key encrpyted: " + Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
+            Log.d(Constant.DEBUG_TAG, "[OUT] Public key encrpyted: " + Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
             // Send the encrypted public key to the server
             channel.writeToServer(Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
 
+            client.setSoTimeout(2000);
+
             // Receive from the server the session key encrypted with the public key
             String serverPublicEncrypted = channel.readFromServer();
+
             String[] parts = serverPublicEncrypted.split("\\.");
 
             TimeStamps ts = new TimeStamps();
-            if(!ts.isWithinRange(Long.valueOf(parts[1]).longValue())){
+            if (!ts.isWithinRange(Long.valueOf(parts[1]).longValue())) {
                 client.close();
             }
 
@@ -90,10 +97,14 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
 
             client.close();
 
-        }catch(Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            try {
+                client.close();
+            }catch (IOException s){
+                return null;
+            }
+            return null;
         }
-
         return sessionKey;
     }
 

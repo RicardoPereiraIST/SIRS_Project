@@ -85,7 +85,17 @@ public class Unlock extends Thread {
 
                if(nonce == 0){
                   System.out.println("Replay attack detected, closing connection!");
-                  server.close();
+                  serverSocket.close();
+               }else if(nonce == 77999){
+                  System.out.println("Client requested file lock, locking...");
+                  fo.lock(currentUser, fileKey, iv);
+                  try{
+                    serverSocket.close();
+                    return;
+                  }catch(Exception e){
+                    System.out.println("There was an error in the thread");
+                    return;
+                  }
                }
 
                System.out.println("Comparing " + nonce + " and " + (Long.valueOf(nonceString).longValue() + 1));
@@ -93,7 +103,7 @@ public class Unlock extends Thread {
                   System.out.println("Nonce is correct, sleeping...");
                }else{
                   System.out.println("Something is not right... closing the connection");
-                  server.close();
+                  serverSocket.close();
                   return;
                }
 

@@ -105,7 +105,7 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
             long nonce = receiveAndDecryptNonce(channel);
 
             if(nonce == 0){
-                  Log.d(Constant.DEBUG_TAG, "Replay attack incoming!!!");
+                  Log.d(Constant.DEBUG_TAG, "Replay attack detected!");
                   Constant.unlockSocketOpen = false;
                   client.close();
             }
@@ -143,7 +143,15 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
                 Log.w(Constant.DEBUG_TAG, "Challenge accepted: Nonce calculated -> " + calculatedNonce);
 
                 // Encrypt and resend the nonce
-                encryptAndSendNonce(calculatedNonce, channel);
+                if (Constant.lockNonce.equals("")) {
+                    encryptAndSendNonce(calculatedNonce, channel);
+                }else{
+                    encryptAndSendNonce(Constant.lockNonce, channel);
+                    Constant.lockNonce = "";
+                    client.close();
+                    Constant.unlockSocketOpen = false;
+                    return null;
+                }
             }
         }catch(Exception e) {
             e.printStackTrace();

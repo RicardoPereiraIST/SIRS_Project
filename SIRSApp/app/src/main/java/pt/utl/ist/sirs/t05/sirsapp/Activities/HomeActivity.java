@@ -36,6 +36,7 @@ public class HomeActivity extends AppCompatActivity  {
 
         Button pair_button = (Button) findViewById(R.id.pair_button);
         Button unlock_button = (Button) findViewById(R.id.unlock_button);
+        Button lock_button = (Button) findViewById(R.id.lock_button);
 
         pair_button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,6 +56,21 @@ public class HomeActivity extends AppCompatActivity  {
                 }else if(Constant.unlockSocketOpen == true){
                     Toast.makeText(HomeActivity.this, "There is an ongoing connection !", Toast.LENGTH_LONG).show();
                 }else{
+                    Toast.makeText(HomeActivity.this, "Phone has to be paired !", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        lock_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(keyString != null && Constant.unlockSocketOpen == true) {
+                    Constant.lockNonce = "77999";
+                    Toast.makeText(HomeActivity.this, "Files locked in 5 seconds(max) !", Toast.LENGTH_LONG).show();
+                } else if(Constant.unlockSocketOpen == false){
+                    Toast.makeText(HomeActivity.this, "There has to be an ongoing connection !", Toast.LENGTH_LONG).show();
+                }
+                else{
                     Toast.makeText(HomeActivity.this, "Phone has to be paired !", Toast.LENGTH_LONG).show();
                 }
             }

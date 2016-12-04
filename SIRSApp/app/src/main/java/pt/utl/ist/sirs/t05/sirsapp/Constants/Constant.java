@@ -9,4 +9,5 @@ public class Constant {
     public static final int PORT = 6000;
     public static final String DEBUG_TAG = "DEBUG";
     public static Boolean unlockSocketOpen = false;
+    public static String lockNonce = "";
 }

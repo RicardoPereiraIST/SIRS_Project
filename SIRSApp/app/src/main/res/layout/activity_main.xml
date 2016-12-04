@@ -32,31 +32,44 @@
             android:textSize="18sp" />
 
         <Button
-            android:text="Pair Phone"
-            android:drawableLeft="@drawable/pairing_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="122dp"
-            android:id="@+id/pair_button"
-            android:elevation="2dp"
-            android:textSize="14sp"
-            android:layout_below="@+id/activity_title"
-            android:layout_alignEnd="@+id/unlock_button"
-            android:layout_alignStart="@+id/unlock_button"
-            android:fontFamily="roboto" />
-
-        <Button
             android:text="Unlock Files"
             android:drawableLeft="@drawable/ic_unlock_files"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
             android:drawablePadding="11sp"
             android:id="@+id/unlock_button"
             android:elevation="2dp"
-            android:layout_below="@+id/pair_button"
-            android:layout_centerHorizontal="true"
-            android:fontFamily="roboto" />
+            android:fontFamily="roboto"
+            android:layout_centerVertical="true"
+            android:layout_centerHorizontal="true" />
+
+        <Button
+            android:text="Lock Files"
+            android:drawableLeft="@drawable/ic_lock_files"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:id="@+id/lock_button"
+            android:elevation="2dp"
+            android:textSize="14sp"
+            android:fontFamily="roboto"
+            android:layout_below="@+id/unlock_button"
+            android:layout_alignStart="@+id/unlock_button"
+            android:layout_alignEnd="@+id/unlock_button" />
+
+        <Button
+            android:text="Pair Phone"
+            android:drawableLeft="@drawable/pairing_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/pair_button"
+            android:elevation="2dp"
+            android:textSize="14sp"
+            android:fontFamily="roboto"
+            android:layout_above="@+id/unlock_button"
+            android:layout_alignStart="@+id/unlock_button"
+            android:layout_marginBottom="27dp"
+            android:layout_alignEnd="@+id/unlock_button" />
 
 
     </RelativeLayout>

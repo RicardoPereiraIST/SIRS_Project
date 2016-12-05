@@ -33,7 +33,7 @@ public class Crypto {
 	  }
 	
 	 public String encryptPassword(String password) throws Exception{
-		    MessageDigest cript = MessageDigest.getInstance("SHA-1");
+		    MessageDigest cript = MessageDigest.getInstance("SHA-256");
 		    cript.reset();
 		    cript.update(password.getBytes("utf8"));
 		    String hex = String.format("%040x", new BigInteger(1,cript.digest()));

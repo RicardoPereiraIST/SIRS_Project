@@ -72,7 +72,8 @@ public class Pair extends Thread {
 
             String sessionKeyToSend = encryptWithPublicKey(sessionKey.getEncoded(), mobilePublicKey);
             long timestamp = generateTimeStamp();
-            String dataToSend = sessionKeyToSend + "." + String.valueOf(timestamp);
+            String hash = h.generateHash(String.valueOf(timestamp));
+            String dataToSend = sessionKeyToSend + "." + String.valueOf(timestamp) + "." + hash;
 
             DataOutputStream out = new DataOutputStream(server.getOutputStream());
             out.writeUTF(dataToSend);

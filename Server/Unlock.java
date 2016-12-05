@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.security.MessageDigest;
+import java.util.Base64;
 
 public class Unlock extends Thread {
    private ServerSocket serverSocket;
@@ -51,7 +52,7 @@ public class Unlock extends Thread {
             DataInputStream in = new DataInputStream(server.getInputStream());
             DataOutputStream out = new DataOutputStream(server.getOutputStream());
 
-            server.setSoTimeout(1000);
+            server.setSoTimeout(2000);
 
             //Respond to the client challenge
             long nonce = receiveAndDecryptNonce(in);
@@ -59,6 +60,7 @@ public class Unlock extends Thread {
             if(nonce == 0){
                   System.out.println("Replay attack detected, closing connection!");
                   server.close();
+                  return;
             }
 
             System.out.println("Nonce received from client -> " + nonce);
@@ -87,6 +89,7 @@ public class Unlock extends Thread {
                if(nonce == 0){
                   System.out.println("Replay attack detected, closing connection!");
                   serverSocket.close();
+                  return;
                }else if(nonce == 77999){
                   System.out.println("Client requested file lock, locking...");
                   fo.lock(currentUser, fileKey, iv);
@@ -153,11 +156,16 @@ public class Unlock extends Thread {
       String[] parts = nonceString.split("\\.");
 
       String hash = generateHash(parts[1]);
-      if(!hash.equals(parts[2]))
-        return 0;
 
-      if(!isWithinRange(Long.valueOf(parts[1]).longValue()))
+      if(!parts[2].equals(hash)){
+        System.out.println("WTFFFF");
+        return 0;
+      }
+
+      if(!isWithinRange(Long.valueOf(parts[1]).longValue())){
+        System.out.println("TEMPO WTF");
          return 0;
+       }
 
       byte[] decodedNonce = Base64.getMimeDecoder().decode(parts[0]);
       byte[] decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey);
@@ -239,11 +247,12 @@ public class Unlock extends Thread {
         return false;
       }
 
-      public String generateHash(String stringToEncrypt) throws Exception{
+     public String generateHash(String stringToEncrypt) throws Exception{
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        messageDigest.update(stringToEncrypt.getBytes());
-        String encryptedString = new String(messageDigest.digest());
-        return encryptedString;
+        messageDigest.reset();
+        messageDigest.update(stringToEncrypt.getBytes("utf8"));
+        String encrypted = String.format("%040x", new BigInteger(1, messageDigest.digest()));
+        return encrypted;
       }
 
 }

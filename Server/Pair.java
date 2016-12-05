@@ -252,9 +252,10 @@ public class Pair extends Thread {
 
       public String generateHash(String stringToEncrypt) throws Exception{
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        messageDigest.update(stringToEncrypt.getBytes());
-        String encryptedString = new String(messageDigest.digest());
-        return encryptedString;
+        messageDigest.reset();
+        messageDigest.update(stringToEncrypt.getBytes("utf8"));
+        String encrypted = String.format("%040x", new BigInteger(1, messageDigest.digest()));
+        return encrypted;
       }
 
-}
+}   

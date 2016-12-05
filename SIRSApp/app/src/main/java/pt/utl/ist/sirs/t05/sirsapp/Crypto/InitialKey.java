@@ -24,7 +24,7 @@ public class InitialKey {
 
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 
-            KeySpec spec = new PBEKeySpec(token.toCharArray(), byte_salt, 1024, 128);
+            KeySpec spec = new PBEKeySpec(token.toCharArray(), byte_salt, 1024, 256);
             SecretKey tmp = factory.generateSecret(spec);
             SecretKey secret = new SecretKeySpec(tmp.getEncoded(), "AES");
 

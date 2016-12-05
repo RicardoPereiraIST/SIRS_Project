@@ -69,10 +69,10 @@ public class Crypto {
 		  public void encryptFile(File f, SecretKey key, IvParameterSpec iv) throws Exception{
         	FileInputStream file = new FileInputStream(f.getPath().toString());
 
-        	String[] dirs = f.getPath().toString().split("\\\\");
+        	String[] dirs = f.getPath().toString().split("/");
         	String[] files = dirs[2].split("\\.");
 
-        	FileOutputStream outStream = new FileOutputStream(dirs[0]+"\\"+dirs[1]+"\\"+files[0]+"_enc."+files[1]);
+        	FileOutputStream outStream = new FileOutputStream(dirs[0]+"/"+dirs[1]+"/"+files[0]+"_enc."+files[1]);
         	Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 		    cipher.init(Cipher.ENCRYPT_MODE, key, iv);
 		    CipherOutputStream cos = new CipherOutputStream(outStream, cipher);
@@ -89,12 +89,12 @@ public class Crypto {
 		  }
 
 		  public void decryptFile(File f, SecretKey key, IvParameterSpec iv) throws Exception{
-		  	String[] dirs = f.getPath().toString().split("\\\\");
+		  	String[] dirs = f.getPath().toString().split("/");
         	String[] files = dirs[2].split("\\.");
         	String[] enc = files[0].split("\\_");
         	FileInputStream file = new FileInputStream(f.getPath().toString());
 
-        	FileOutputStream outStream = new FileOutputStream(dirs[0]+"\\"+dirs[1]+"\\"+enc[0]+"."+files[1]);
+        	FileOutputStream outStream = new FileOutputStream(dirs[0]+"/"+dirs[1]+"/"+enc[0]+"."+files[1]);
 
 
         	Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");

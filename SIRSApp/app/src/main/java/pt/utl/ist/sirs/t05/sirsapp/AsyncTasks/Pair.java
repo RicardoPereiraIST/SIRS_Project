@@ -3,6 +3,7 @@ package pt.utl.ist.sirs.t05.sirsapp.AsyncTasks;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
@@ -83,15 +84,18 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
             String serverPublicEncrypted = channel.readFromServer();
 
             String[] parts = serverPublicEncrypted.split("\\.");
-
             Hash h = new Hash();
             String hash = h.generateHash(parts[1]);
-            if(!hash.equals(parts[2]))
+
+            if(!parts[2].equals(hash)) {
                 client.close();
+                return null;
+            }
 
             TimeStamps ts = new TimeStamps();
             if (!ts.isWithinRange(Long.valueOf(parts[1]).longValue())) {
                 client.close();
+                return null;
             }
 
             Log.d(Constant.DEBUG_TAG, "[IN] Session Key encrypted: " + parts[0]);

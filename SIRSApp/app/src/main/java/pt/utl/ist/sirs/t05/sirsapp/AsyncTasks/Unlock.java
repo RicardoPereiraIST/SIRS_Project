@@ -73,8 +73,9 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
 
             Hash h = new Hash();
             String hash = h.generateHash(parts[1]);
-            if(!hash.equals(parts[2]))
-                client.close();
+            if(!parts[2].equals(hash)) {
+                return 0;
+            }
 
             if(ts.isWithinRange(Long.valueOf(parts[1]).longValue()) == false)
                 return 0;

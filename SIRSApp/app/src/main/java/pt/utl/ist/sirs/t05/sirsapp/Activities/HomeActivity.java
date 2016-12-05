@@ -111,15 +111,10 @@ public class HomeActivity extends AppCompatActivity  {
     protected void onResume(){
         super.onResume();
         TextView state = (TextView)findViewById(R.id.file_state_text);
-        String text = state.getText().toString();
         if(Constant.unlockSocketOpen == false){
-            String toDisplay = " Locked";
-            text = text.replace(" Unlocked", "");
-            state.setText(Html.fromHtml(text + "<font color=\"red\">" + toDisplay + "</font>"), TextView.BufferType.SPANNABLE);
+            state.setText(Html.fromHtml("Files are currrently: <font color=\"red\"> Locked</font>"), TextView.BufferType.SPANNABLE);
         }else{
-            String toDisplay = " Unlocked";
-            text = text.replace(" Locked", "");
-            state.setText(Html.fromHtml(text + "<font color=\"green\">" + toDisplay + "</font>"), TextView.BufferType.EDITABLE);
+            state.setText(Html.fromHtml("Files are currrently: <font color=\"green\"> Unlocked</font>"), TextView.BufferType.EDITABLE);
         }
     }
 }

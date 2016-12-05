@@ -13,6 +13,7 @@ import java.security.SecureRandom;
 
 import javax.crypto.SecretKey;
 
+import pt.utl.ist.sirs.t05.sirsapp.Crypto.Hash;
 import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.CommunicationChannel;
 import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.SessionKey;
@@ -49,7 +50,11 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
             Log.d(Constant.DEBUG_TAG, "[OUT] Encrypted encoded nonce -> " + encryptedNonceString);
 
             long timestamp = ts.generateTimeStamp();
-            String dataToSend = encryptedNonceString + "." + String.valueOf(timestamp);
+
+            Hash h = new Hash();
+            String hash = h.generateHash(String.valueOf(timestamp));
+
+            String dataToSend = encryptedNonceString + "." + String.valueOf(timestamp) + "." + hash;
 
             communication.writeToServer(dataToSend);
             Log.d(Constant.DEBUG_TAG, "[OUT] Sent");
@@ -65,6 +70,12 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
         try {
             String receivedNonce = communication.readFromServer();
             String[] parts = receivedNonce.split("\\.");
+
+            Hash h = new Hash();
+            String hash = h.generateHash(parts[1]);
+            if(!hash.equals(parts[2]))
+                client.close();
+
             if(ts.isWithinRange(Long.valueOf(parts[1]).longValue()) == false)
                 return 0;
 

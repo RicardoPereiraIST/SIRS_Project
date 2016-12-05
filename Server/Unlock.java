@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.security.MessageDigest;
 
 public class Unlock extends Thread {
    private ServerSocket serverSocket;
@@ -138,7 +139,10 @@ public class Unlock extends Thread {
       byte[] encryptedNonce = encryptWithSessionKey(nonce, sessionKey);
       String encryptedNonceString = Base64.getMimeEncoder().encodeToString(encryptedNonce);
       long timestamp = generateTimeStamp();
-      String dataToSend = encryptedNonceString + "." + String.valueOf(timestamp);
+
+      String hash = generateHash(String.valueOf(timestamp));
+
+      String dataToSend = encryptedNonceString + "." + String.valueOf(timestamp) + "." + hash;
       System.out.println("Sending the nonce...");
       out.writeUTF(dataToSend);
    }
@@ -147,6 +151,11 @@ public class Unlock extends Thread {
       String nonceString = in.readUTF();
 
       String[] parts = nonceString.split("\\.");
+
+      String hash = generateHash(parts[1]);
+      if(!hash.equals(parts[2]))
+        return 0;
+
       if(!isWithinRange(Long.valueOf(parts[1]).longValue()))
          return 0;
 
@@ -228,6 +237,13 @@ public class Unlock extends Thread {
            return true;
 
         return false;
+      }
+
+      public String generateHash(String stringToEncrypt) throws Exception{
+        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+        messageDigest.update(stringToEncrypt.getBytes());
+        String encryptedString = new String(messageDigest.digest());
+        return encryptedString;
       }
 
 }

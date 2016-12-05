@@ -16,6 +16,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import pt.utl.ist.sirs.t05.sirsapp.Activities.HomeActivity;
+import pt.utl.ist.sirs.t05.sirsapp.Crypto.Hash;
 import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.CommunicationChannel;
 import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.InitialKey;
@@ -82,6 +83,11 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
             String serverPublicEncrypted = channel.readFromServer();
 
             String[] parts = serverPublicEncrypted.split("\\.");
+
+            Hash h = new Hash();
+            String hash = h.generateHash(parts[1]);
+            if(!hash.equals(parts[2]))
+                client.close();
 
             TimeStamps ts = new TimeStamps();
             if (!ts.isWithinRange(Long.valueOf(parts[1]).longValue())) {

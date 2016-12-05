@@ -19,7 +19,6 @@
         </activity>
         <activity android:name=".Activities.PairingActivity" />
         <activity android:name=".Activities.AboutActivity" />
-        <activity android:name=".Activities.UnlockActivity" />
         <activity
             android:name=".Activities.Settings.SettingsActivity"
             android:label="@string/title_activity_settings" />

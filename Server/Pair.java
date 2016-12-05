@@ -148,7 +148,7 @@ public class Pair extends Thread {
 
          SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
 
-         KeySpec spec = new PBEKeySpec(token.toCharArray(), saltBytes, 1024, 128);
+         KeySpec spec = new PBEKeySpec(token.toCharArray(), saltBytes, 1024, 256);
          SecretKey tmp = factory.generateSecret(spec);
          return new SecretKeySpec(tmp.getEncoded(), "AES");
 

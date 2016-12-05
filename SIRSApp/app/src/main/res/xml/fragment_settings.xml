@@ -7,6 +7,7 @@
         android:title="Network Settings">
 
         <EditTextPreference
+            android:defaultValue="255.255.255.255"
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="Set the server ip address"

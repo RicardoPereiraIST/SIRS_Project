@@ -1,6 +1,7 @@
 package pt.utl.ist.sirs.t05.sirsapp.Activities;
 
 import pt.utl.ist.sirs.t05.sirsapp.AsyncTasks.Unlock;
+import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.R;
 
 import android.content.Intent;
@@ -9,6 +10,7 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Base64;
 import android.view.View;
+import android.widget.TextView;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;

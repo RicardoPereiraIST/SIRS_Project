@@ -1,6 +1,7 @@
 package pt.utl.ist.sirs.t05.sirsapp.Activities;
 
 import pt.utl.ist.sirs.t05.sirsapp.Activities.Settings.SettingsActivity;
+import pt.utl.ist.sirs.t05.sirsapp.AsyncTasks.Unlock;
 import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
 import pt.utl.ist.sirs.t05.sirsapp.R;
 
@@ -9,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,6 +18,8 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 
 public class HomeActivity extends AppCompatActivity  {
@@ -54,9 +58,23 @@ public class HomeActivity extends AppCompatActivity  {
             @Override
             public void onClick(View view) {
                 if(keyString != null && Constant.unlockSocketOpen == false) {
-                    Intent changeActivity = new Intent(HomeActivity.this, UnlockActivity.class);
-                    changeActivity.putExtra("SessionKey", keyString);
-                    HomeActivity.this.startActivity(changeActivity);
+                    SecretKey sessionKey = new SecretKeySpec(Base64.decode(keyString, Base64.DEFAULT), "AES");
+
+                    Unlock u = new Unlock(sessionKey);
+                    u.execute(HomeActivity.this);
+
+                    try {
+                        Thread.sleep(1000);
+                        if (u.getExceptionThrown() != null){
+                            Toast.makeText(HomeActivity.this, "A connection must be open on the server!", Toast.LENGTH_LONG).show();
+                        }else{
+                            while(Constant.unlockSocketOpen == false){}
+                            onResume();
+                            Toast.makeText(HomeActivity.this, "Files unlocked !", Toast.LENGTH_LONG).show();
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
                 }else if(Constant.unlockSocketOpen == true){
                     Toast.makeText(HomeActivity.this, "There is an ongoing connection !", Toast.LENGTH_LONG).show();
                 }else{

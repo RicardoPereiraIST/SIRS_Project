@@ -23,6 +23,9 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
     private SecretKey sessionKey;
     private SessionKey sessionKeyCipher;
     private TimeStamps ts;
+    private Socket client;
+
+    private Exception exceptionThrown;
 
     public Unlock(SecretKey sessionKey){
         this.sessionKey = sessionKey;
@@ -92,7 +95,7 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
         String ipAddress = prefs.getString("edit_text_ip_address", "");
 
         try {
-            Socket client = new Socket(ipAddress, 6100);
+            this.client = new Socket(ipAddress, 6100);
             CommunicationChannel channel = new CommunicationChannel(client);
 
             Constant.unlockSocketOpen = true;
@@ -154,9 +157,12 @@ public class Unlock extends AsyncTask<Context, Void, Void> {
                 }
             }
         }catch(Exception e) {
-            e.printStackTrace();
+            exceptionThrown = e;
+            return null;
         }
+    }
 
-        return null;
+    public Exception getExceptionThrown(){
+        return exceptionThrown;
     }
 }

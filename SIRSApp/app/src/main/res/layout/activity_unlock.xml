@@ -27,7 +27,7 @@
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="108dp"
-            android:id="@+id/textView3"
+            android:id="@+id/text1"
             android:textColor="@android:color/holo_green_dark"
             android:textStyle="normal|bold"
             android:textSize="18sp" />
@@ -39,7 +39,7 @@
             android:layout_marginTop="12dp"
             android:id="@+id/textView8"
             android:textStyle="normal|bold"
-            android:layout_below="@+id/textView3"
+            android:layout_below="@+id/text1"
             android:layout_centerHorizontal="true" />
     </RelativeLayout>
 

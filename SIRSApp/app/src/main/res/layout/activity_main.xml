@@ -19,18 +19,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextView
-            android:text="Main menu"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="21dp"
-            android:id="@+id/activity_title"
-            android:textAppearance="@style/TextAppearance.AppCompat"
-            android:textStyle="normal|bold"
-            android:textSize="18sp" />
-
         <Button
             android:text="Unlock Files"
             android:drawableLeft="@drawable/ic_unlock_files"
@@ -70,6 +58,30 @@
             android:layout_alignStart="@+id/unlock_button"
             android:layout_marginBottom="27dp"
             android:layout_alignEnd="@+id/unlock_button" />
+
+        <TextView
+            android:text="Files are currently: Unlocked"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/file_state_text"
+            android:layout_marginStart="13dp"
+            android:layout_below="@+id/lock_button"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="52dp"
+            android:textSize="14sp"
+            android:textStyle="normal|bold" />
+
+        <TextView
+            android:text="Main menu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/activity_title"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textStyle="normal|bold"
+            android:textSize="18sp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="43dp" />
 
 
     </RelativeLayout>

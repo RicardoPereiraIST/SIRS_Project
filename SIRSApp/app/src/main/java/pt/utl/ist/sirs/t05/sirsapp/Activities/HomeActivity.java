@@ -8,11 +8,15 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+
 
 public class HomeActivity extends AppCompatActivity  {
     private String keyString;
@@ -66,7 +70,10 @@ public class HomeActivity extends AppCompatActivity  {
             public void onClick(View view) {
                 if(keyString != null && Constant.unlockSocketOpen == true) {
                     Constant.lockNonce = "77999";
-                    Toast.makeText(HomeActivity.this, "Files locked in 5 seconds(max) !", Toast.LENGTH_LONG).show();
+                    while(Constant.unlockSocketOpen == true){}
+                    onResume();
+                    Toast.makeText(HomeActivity.this, "Files locked !", Toast.LENGTH_LONG).show();
+
                 } else if(Constant.unlockSocketOpen == false){
                     Toast.makeText(HomeActivity.this, "There has to be an ongoing connection !", Toast.LENGTH_LONG).show();
                 }
@@ -97,6 +104,22 @@ public class HomeActivity extends AppCompatActivity  {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+        TextView state = (TextView)findViewById(R.id.file_state_text);
+        String text = state.getText().toString();
+        if(Constant.unlockSocketOpen == false){
+            String toDisplay = " Locked";
+            text = text.replace(" Unlocked", "");
+            state.setText(Html.fromHtml(text + "<font color=\"red\">" + toDisplay + "</font>"), TextView.BufferType.SPANNABLE);
+        }else{
+            String toDisplay = " Unlocked";
+            text = text.replace(" Locked", "");
+            state.setText(Html.fromHtml(text + "<font color=\"green\">" + toDisplay + "</font>"), TextView.BufferType.EDITABLE);
         }
     }
 }

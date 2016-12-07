@@ -35,6 +35,7 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
     private InitialKey initialKeyCipher;
     private RSA rsaCipher;
     private SessionKey sessionKeyCipher;
+    private TimeStamps ts;
 
     public Pair(String token){
         this.token = token;
@@ -76,7 +77,13 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
             byte[] encryptedPublicKey = initialKeyCipher.encryptWithWeakKey(publicKey.getEncoded(), initialKey);
             Log.d(Constant.DEBUG_TAG, "[OUT] Public key encrpyted: " + Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
             // Send the encrypted public key to the server
-            channel.writeToServer(Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
+
+            long timestamp = ts.generateTimeStamp();
+
+            Hash h = new Hash();
+            String hash_toSend = h.generateHash(String.valueOf(timestamp));
+
+            channel.writeToServer(Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT) +  "." + String.valueOf(timestamp) + "." + hash_toSend);
 
             client.setSoTimeout(2000);
 
@@ -84,7 +91,6 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
             String serverPublicEncrypted = channel.readFromServer();
 
             String[] parts = serverPublicEncrypted.split("\\.");
-            Hash h = new Hash();
             String hash = h.generateHash(parts[1]);
 
             if(!parts[2].equals(hash)) {

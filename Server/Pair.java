@@ -60,7 +60,17 @@ public class Pair extends Thread {
             // Receive from client the public key
             String received = in.readUTF();
 
-            byte[] encrypted_public_key = DatatypeConverter.parseBase64Binary(received);
+            String parts[] = received.split("\\.");
+
+            String hash = generateHash(parts[1]);
+            if(!parts[2].equals(hash)){
+              System.out.println("Wrong hash!");
+              serverSocket.close();
+              return;
+            }
+
+
+            byte[] encrypted_public_key = DatatypeConverter.parseBase64Binary(parts[0]);
             byte[] decrypted_public_key = decryptWithInitialKey(encrypted_public_key, initialKey);
 
             mobilePublicKey = KeyFactory.getInstance("RSA").
@@ -72,7 +82,7 @@ public class Pair extends Thread {
 
             String sessionKeyToSend = encryptWithPublicKey(sessionKey.getEncoded(), mobilePublicKey);
             long timestamp = generateTimeStamp();
-            String hash = generateHash(String.valueOf(timestamp));
+            hash = generateHash(String.valueOf(timestamp));
             String dataToSend = sessionKeyToSend + "." + String.valueOf(timestamp) + "." + hash;
 
             DataOutputStream out = new DataOutputStream(server.getOutputStream());

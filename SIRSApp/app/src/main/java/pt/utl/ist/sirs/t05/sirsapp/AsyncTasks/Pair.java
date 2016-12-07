@@ -16,7 +16,6 @@ import java.security.PublicKey;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import pt.utl.ist.sirs.t05.sirsapp.Activities.HomeActivity;
 import pt.utl.ist.sirs.t05.sirsapp.Crypto.Hash;
 import pt.utl.ist.sirs.t05.sirsapp.SocketFunctions.CommunicationChannel;
 import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
@@ -35,7 +34,6 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
     private InitialKey initialKeyCipher;
     private RSA rsaCipher;
     private SessionKey sessionKeyCipher;
-    private TimeStamps ts;
 
     public Pair(String token){
         this.token = token;
@@ -78,6 +76,7 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
             Log.d(Constant.DEBUG_TAG, "[OUT] Public key encrpyted: " + Base64.encodeToString(encryptedPublicKey, Base64.DEFAULT));
             // Send the encrypted public key to the server
 
+            TimeStamps ts = new TimeStamps();
             long timestamp = ts.generateTimeStamp();
 
             Hash h = new Hash();
@@ -98,7 +97,6 @@ public class Pair extends AsyncTask<Context, Void, SecretKey> {
                 return null;
             }
 
-            TimeStamps ts = new TimeStamps();
             if (!ts.isWithinRange(Long.valueOf(parts[1]).longValue())) {
                 client.close();
                 return null;

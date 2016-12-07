@@ -1,5 +1,7 @@
 package pt.utl.ist.sirs.t05.sirsapp.SocketFunctions;
 
+import android.util.Log;
+
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
@@ -8,9 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import pt.utl.ist.sirs.t05.sirsapp.Constants.Constant;
+
 public class TimeStamps{
 	public long generateTimeStamp() throws Exception{
-
         final CountDownLatch latch = new CountDownLatch(1);
         final String[] timeStamp = new String[1];
 
@@ -34,10 +37,8 @@ public class TimeStamps{
             }
         }.start();
         latch.await();
-
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z");
         Date date = sdf.parse(timeStamp[0]);
-
         return date.getTime();
   	}
 

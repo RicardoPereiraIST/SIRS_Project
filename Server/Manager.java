@@ -159,7 +159,7 @@ public class Manager
     System.out.println("New User Registration");
     Console console = System.console();
     String username = console.readLine("Enter your username: ");
-    char passwordArray[] = console.readPassword("Enter your password: ");
+    char passwordArray[] = console.readPassword("Enter your password (has to be 8 characters long and have letters and numbers): ");
     String password = new String(passwordArray);
 
     if(username.trim().isEmpty()){
@@ -169,6 +169,16 @@ public class Manager
 
     if(password.trim().isEmpty()){
       System.out.println("Password needs characters\n");
+      return false;
+    }
+
+    if(password.length() < 8){
+      System.out.println("Password has to be 8 characters long\n");
+      return false;
+    }
+
+    if(!password.matches("^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$")){
+      System.out.println("Please add numbers and letters to your password\n");
       return false;
     }
 

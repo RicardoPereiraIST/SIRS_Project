@@ -72,6 +72,14 @@ public class Manager
         e.printStackTrace();
       }
     }
+
+    File f3 = new File(".Logins.txt");
+    try{
+      f3.createNewFile();
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
   }
 
   public void init() throws Exception{
@@ -218,6 +226,11 @@ public class Manager
     char passwordArray[] = console.readPassword("Enter your password: ");
     String password = new String(passwordArray);
 
+    if(!canLogin(username)){
+      System.out.println("Account locked. Try again later\n");
+      return false;
+    }
+
     if(checkCredentials(username, password)){
       for(int i = 0; i<users.size(); i++){
         if(users.get(i).getUsername().equals(username)){
@@ -229,8 +242,94 @@ public class Manager
 
     else{
       System.out.println("Try again\n");
+
+      handleBruteForce(username);
+
       return false;
     }    
+  }
+
+  public boolean canLogin(String username) throws Exception{
+    BufferedReader br = new BufferedReader(new FileReader(".Logins.txt"));
+    String line = br.readLine();
+
+    while(line != null){
+      String[] parts = line.split(" ");
+      if(parts[0].equals(username)){
+        long timestamp = unlock.generateTimeStamp();
+        if(timestamp >= Long.valueOf(parts[2])+30000){
+          BufferedWriter bw = new BufferedWriter(new FileWriter(".Logins_temp.txt"));
+          line.replace(parts[1], String.valueOf(0));
+          line.replace(parts[2], String.valueOf(0));
+          bw.write(line+"\n");
+          File oldFile = new File(".Logins.txt");
+          oldFile.delete();
+          File newFile = new File(".Logins_temp.txt");
+          newFile.renameTo(oldFile);
+          return true;
+        }
+        return false;
+      }
+      line = br.readLine();
+    }
+    return true;
+  }
+
+  public boolean userExists(String username){
+    for(User u : users)
+      if(u.getUsername().equals(username)){
+        return true;
+      }
+   return false;
+  }
+
+  public void handleBruteForce(String username) throws Exception{
+
+    if(!userExists(username))
+      return;
+
+    BufferedReader br = new BufferedReader(new FileReader(".Logins.txt"));
+    BufferedWriter bw = new BufferedWriter(new FileWriter(".Logins_temp.txt"));
+
+    boolean hasLog = false;
+
+    String line = br.readLine();
+
+    while(line != null){
+      String[] parts = line.split(" ");
+      if(parts[0].equals(username)){
+        Integer count = Integer.valueOf(parts[1]);
+        if(count < 4){
+          count++;
+          line.replace(parts[1], String.valueOf(count));
+          bw.write(line+"\n");
+        }
+        else if(count == 4){
+          count++;
+          line.replace(parts[1], String.valueOf(count));
+          long timestamp = unlock.generateTimeStamp();
+          line.replace(parts[2], String.valueOf(timestamp));
+          bw.write(line+"\n");
+          System.out.println("Too many tries. Account locked. Try again later\n");
+        }
+        hasLog = true;
+        break;
+      }
+      line = br.readLine();
+    }
+
+    if(!hasLog){
+      String toWrite = username + " " + String.valueOf(1) + " " + String.valueOf(0);
+      bw.write(toWrite);
+    }
+
+    br.close();
+    bw.close();
+
+    File oldFile = new File(".Logins.txt");
+    oldFile.delete();
+    File newFile = new File(".Logins_temp.txt");
+    newFile.renameTo(oldFile);
   }
 
   public void pairing() throws Exception{

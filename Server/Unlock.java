@@ -37,6 +37,8 @@ public class Unlock extends Thread {
    private IvParameterSpec iv;
 
    private FileOperations fo = new FileOperations();
+   
+   public Unlock(){}
  
    public Unlock(int port, SecretKey sessionKey, User currentUser, IvParameterSpec iv, SecretKey fileKey) throws IOException {
       this.serverSocket = new ServerSocket(port);

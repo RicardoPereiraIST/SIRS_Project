@@ -18,6 +18,7 @@ public class Manager
   private FileOperations fo = new FileOperations();
 
   private Unlock unlock;
+  private Unlock unlock2 = new Unlock();
   public static Boolean isLocked;
 
   public Manager(){
@@ -128,16 +129,6 @@ public class Manager
         System.out.println("Files already locked\n");
       display();
     }
-  /*  else if(command.matches("2")){
-      if(isLocked){
-        fo.unlock(curUser, key, iv);
-        System.out.println("Files unlocked\n");
-        isLocked = false;
-      }
-      else
-        System.out.println("Files already unlocked\n");
-      display();
-    }*/
     else if(command.matches("2"))
       pairing();
     else if(command.matches("3"))
@@ -237,6 +228,9 @@ public class Manager
           curUser = users.get(i);
         }
       }
+      deleteLog(username);
+      
+      
       return true;
     }
 
@@ -248,6 +242,27 @@ public class Manager
       return false;
     }    
   }
+  
+  public void deleteLog(String username) throws Exception{
+    BufferedReader br = new BufferedReader(new FileReader(".Logins.txt"));
+    String line = br.readLine();
+
+    while(line != null){
+      String[] parts = line.split(" ");
+      if(parts[0].equals(username)){
+        BufferedWriter bw = new BufferedWriter(new FileWriter(".Logins_temp.txt"));
+        line = line.replace(line, "");
+        bw.write(line+"\n");
+        File oldFile = new File(".Logins.txt");
+        oldFile.delete();
+        File newFile = new File(".Logins_temp.txt");
+        newFile.renameTo(oldFile);
+        bw.close();
+      }
+      line = br.readLine();
+  }
+          br.close();
+  }
 
   public boolean canLogin(String username) throws Exception{
     BufferedReader br = new BufferedReader(new FileReader(".Logins.txt"));
@@ -256,22 +271,29 @@ public class Manager
     while(line != null){
       String[] parts = line.split(" ");
       if(parts[0].equals(username)){
-        long timestamp = unlock.generateTimeStamp();
+        long timestamp = unlock2.generateTimeStamp();
+        if (Long.valueOf(parts[1]) < 5){
+          return true;
+        }
+        
         if(timestamp >= Long.valueOf(parts[2])+30000){
-          BufferedWriter bw = new BufferedWriter(new FileWriter(".Logins_temp.txt"));
-          line.replace(parts[1], String.valueOf(0));
-          line.replace(parts[2], String.valueOf(0));
+          BufferedWriter bw = new BufferedWriter(new FileWriter(".Logins_temp.txt", true));
+          line = line.replace(line, "");
           bw.write(line+"\n");
           File oldFile = new File(".Logins.txt");
           oldFile.delete();
           File newFile = new File(".Logins_temp.txt");
           newFile.renameTo(oldFile);
+          br.close();
+          bw.close();
           return true;
         }
+        br.close();
         return false;
       }
       line = br.readLine();
     }
+    br.close();
     return true;
   }
 
@@ -289,8 +311,8 @@ public class Manager
       return;
 
     BufferedReader br = new BufferedReader(new FileReader(".Logins.txt"));
-    BufferedWriter bw = new BufferedWriter(new FileWriter(".Logins_temp.txt"));
-
+    BufferedWriter bw = new BufferedWriter(new FileWriter(".Logins_temp.txt", true));
+    
     boolean hasLog = false;
 
     String line = br.readLine();
@@ -301,14 +323,14 @@ public class Manager
         Integer count = Integer.valueOf(parts[1]);
         if(count < 4){
           count++;
-          line.replace(parts[1], String.valueOf(count));
+          line = line.replace(parts[1], String.valueOf(count));
           bw.write(line+"\n");
         }
         else if(count == 4){
           count++;
-          line.replace(parts[1], String.valueOf(count));
-          long timestamp = unlock.generateTimeStamp();
-          line.replace(parts[2], String.valueOf(timestamp));
+          line = line.replace(parts[1], String.valueOf(count));
+          long timestamp = unlock2.generateTimeStamp();
+          line = line.replace(parts[2], String.valueOf(timestamp));
           bw.write(line+"\n");
           System.out.println("Too many tries. Account locked. Try again later\n");
         }

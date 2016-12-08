@@ -49,5 +49,5 @@ Files/
 # .Iv file
 .Iv.txt
 
-# .PublicKey file
-.PublicKeys.txt
+# .Logins file
+.Logins.txt

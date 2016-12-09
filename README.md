@@ -16,9 +16,8 @@ README.md
 
   Client side:
   - 1. Connect the Android phone to the Android Studio.
-  - 2. Compile and execute the code. OR
-       Install the APK that comes with the Source Code found in: SIRSApp/app/app.apk
-
+  - 2. Compile and execute the code.
+  
 - Use case example:
   - 1. On the server terminal, register a user selecting the Register command (1) and providing a user name and a password.
   - 2. Login with the credentials used on step 1.

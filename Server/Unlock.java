@@ -54,7 +54,7 @@ public class Unlock extends Thread {
             DataInputStream in = new DataInputStream(server.getInputStream());
             DataOutputStream out = new DataOutputStream(server.getOutputStream());
 
-            server.setSoTimeout(2000);
+            server.setSoTimeout(5000);
 
             //Respond to the client challenge
             long nonce = receiveAndDecryptNonce(in);

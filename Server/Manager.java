@@ -117,27 +117,18 @@ public class Manager
 
   public void display() throws Exception{
     Console console = System.console();
-    System.out.println("There are 5 commands: \n1-Lock\n2-Pairing\n3-Unlock files with Phone\n4-Logout\n5-Exit");  //\nCreate\nRead\nWrite\n
+    System.out.println("There are 4 commands: \n1-Pairing\n2-Unlock files with Phone\n3-Logout\n4-Exit");  //\nCreate\nRead\nWrite\n
     String command = console.readLine("Enter your command: ");
 
-    if(command.matches("1")){
-      if(isLocked == false){
-        fo.lock(curUser, key, iv);
-        System.out.println("Files locked\n");
-      }
-      else
-        System.out.println("Files already locked\n");
-      display();
-    }
-    else if(command.matches("2"))
+    if(command.matches("1"))
       pairing();
-    else if(command.matches("3"))
+    else if(command.matches("2"))
       listenToUnlockRequest();
-    else if(command.matches("4")){
+    else if(command.matches("3")){
       logout();
       init();
     }
-    else if(command.matches("5")){
+    else if(command.matches("4")){
       logout();
       exit();
     }
@@ -355,6 +346,11 @@ public class Manager
   }
 
   public void pairing() throws Exception{
+    if (sessionKey != null){
+      System.out.println("The phone is already paired!\n");
+      display();
+      return;
+    }
     System.out.println("Pairing with your smartphone");
 
     SecureRandom r = new SecureRandom();

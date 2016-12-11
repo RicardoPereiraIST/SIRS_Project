@@ -371,7 +371,7 @@ public class Manager
     String option = "";
     Console console = System.console();
     while(!option.equals("yes") && !option.equals("no")){
-      option = console.readLine("Do you want to pair the phone right now? (yes/no) ");
+      option = console.readLine("Do you want to unlock the phone right now? (yes/no) ");
     }
 
     if(option.equals("yes")){
@@ -393,7 +393,6 @@ public class Manager
     }
 
     System.out.println("Waiting for smartphone...");
-    System.out.println("This allows the phone to unlock the files");
 
     unlock = new Unlock(6100, sessionKey, curUser, iv, key);
     unlock.start();

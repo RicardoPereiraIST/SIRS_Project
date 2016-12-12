@@ -160,12 +160,10 @@ public class Unlock extends Thread {
       String hash = generateHash(parts[1]);
 
       if(!parts[2].equals(hash)){
-        System.out.println("WTFFFF");
         return 0;
       }
 
       if(!isWithinRange(Long.valueOf(parts[1]).longValue())){
-        System.out.println("TEMPO WTF");
          return 0;
        }
 

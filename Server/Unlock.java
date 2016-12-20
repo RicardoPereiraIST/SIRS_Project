@@ -147,12 +147,7 @@ public class Unlock extends Thread {
       if(!parts[2].equals(hash)){
         return 0;
       }
-
-<<<<<<< HEAD
-      if(!isWithinRange(Long.valueOf(parts[1]).longValue())){
-=======
       if(!ts.isWithinRange(Long.valueOf(parts[1]).longValue())){
->>>>>>> e723007579d2cea802bc4b21f3d9ee787ba577f3
          return 0;
        }
 

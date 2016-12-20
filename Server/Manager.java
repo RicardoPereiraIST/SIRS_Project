@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.*;
-import java.security.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.nio.file.Files;
@@ -18,7 +17,8 @@ public class Manager
   private FileOperations fo = new FileOperations();
 
   private Unlock unlock;
-  private Unlock unlock2 = new Unlock();
+  private Timestamps ts = new Timestamps();
+  
   public static Boolean isLocked;
 
   public Manager(){
@@ -262,8 +262,9 @@ public class Manager
     while(line != null){
       String[] parts = line.split(" ");
       if(parts[0].equals(username)){
-        long timestamp = unlock2.generateTimeStamp();
+        long timestamp = ts.generateTimeStamp();
         if (Long.valueOf(parts[1]) < 5){
+          br.close();
           return true;
         }
         
@@ -320,7 +321,7 @@ public class Manager
         else if(count == 4){
           count++;
           line = line.replace(parts[1], String.valueOf(count));
-          long timestamp = unlock2.generateTimeStamp();
+          long timestamp = ts.generateTimeStamp();
           line = line.replace(parts[2], String.valueOf(timestamp));
           bw.write(line+"\n");
           System.out.println("Too many tries. Account locked. Try again later\n");
@@ -371,7 +372,7 @@ public class Manager
     String option = "";
     Console console = System.console();
     while(!option.equals("yes") && !option.equals("no")){
-      option = console.readLine("Do you want to unlock the phone right now? (yes/no) ");
+      option = console.readLine("Do you want to unlock the files right now? (yes/no) ");
     }
 
     if(option.equals("yes")){
@@ -393,6 +394,7 @@ public class Manager
     }
 
     System.out.println("Waiting for smartphone...");
+    System.out.println("This allows the phone to unlock the files");
 
     unlock = new Unlock(6100, sessionKey, curUser, iv, key);
     unlock.start();

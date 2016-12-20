@@ -21,7 +21,7 @@ README.md
 - Use case example:
   - 1. On the server terminal, register a user selecting the Register command (1) and providing a user name and a password.
   - 2. Login with the credentials used on step 1.
-  - 2.1. Copy files to the folder: Server/Files/<username>/
+  - 2.1. Copy files to the folder: Server/Files/"username"/
   - 2.2. Test files can be found on the Resources/ folder.
   - 3. Select the Pairing command (1). The terminal will generate a random token so that the user can type it on the phone.
   - 4. Select the Settings option (top right corner) and enter the server's ip address.

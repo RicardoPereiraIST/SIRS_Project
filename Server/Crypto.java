@@ -1,26 +1,23 @@
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.math.BigInteger;
-import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
 
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import javax.crypto.CipherOutputStream;
+import javax.crypto.KeyGenerator;
 
 public class Crypto {
 	
@@ -111,5 +108,65 @@ public class Crypto {
 
 		    f.delete();
 		  }
+		  
+		   // ------- Initial key -------------------------
+
+		   public SecretKey generateInitialKey(String token){
+		      try{
+		         byte[] saltBytes = "1234561234567812".getBytes();
+
+		         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+
+		         KeySpec spec = new PBEKeySpec(token.toCharArray(), saltBytes, 1024, 256);
+		         SecretKey tmp = factory.generateSecret(spec);
+		         return new SecretKeySpec(tmp.getEncoded(), "AES");
+
+		      }catch(Exception e){
+		         e.printStackTrace();
+		      }
+		      return null;
+		   }
+
+		   public byte[] decryptWithInitialKey(byte[] ciphertext, SecretKey key)throws Exception{
+		      Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		      cipher.init(Cipher.DECRYPT_MODE, key);
+		      return cipher.doFinal(ciphertext);
+		   }
+
+		  
+		// ------ Session Key -----------------
+
+		   public byte[] encryptWithSessionKey(String nonce, SecretKey key) throws Exception{
+		      String ivStr = "Randominitvector";
+		      IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
+
+		      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		      cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+		      return cipher.doFinal(nonce.getBytes("UTF-8"));
+		   }
+
+		   public byte[] decryptWithSessionKey(byte[] nonce, SecretKey key) throws Exception{
+		      String ivStr = "Randominitvector";
+		      IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
+
+		      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+		      cipher.init(Cipher.DECRYPT_MODE, key, iv);
+		      return cipher.doFinal(nonce);
+		   }
+
+		   public SecretKey generateSessionKey() throws Exception{
+		      KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+		      keyGen.init(128);
+		      return keyGen.generateKey();
+		   }
+		   
+		// ------------ RSA --------------------
+
+		   public String encryptWithPublicKey(byte[] plaintext, PublicKey key)throws Exception{
+		      Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		      cipher.init(Cipher.ENCRYPT_MODE, key);
+		      byte[] ciphertext = cipher.doFinal(plaintext);
+		      return DatatypeConverter.printBase64Binary(ciphertext);
+		   }
 
 }

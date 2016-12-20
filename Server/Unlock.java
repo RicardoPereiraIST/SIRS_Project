@@ -1,32 +1,10 @@
 import java.net.*;
 import java.io.*;
-import java.security.PublicKey;
-import java.security.KeyFactory;
-import java.security.spec.X509EncodedKeySpec;
 import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.spec.KeySpec;
 import java.util.Base64;
-import javax.crypto.Cipher;
-import javax.xml.bind.DatatypeConverter;
-import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
 import java.security.SecureRandom;
-import java.math.BigInteger;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.net.URL;
-import java.net.URLConnection;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.security.MessageDigest;
-import java.util.Base64;
+
 
 public class Unlock extends Thread {
    private ServerSocket serverSocket;
@@ -35,6 +13,10 @@ public class Unlock extends Thread {
    private SecretKey fileKey;
    private User currentUser;
    private IvParameterSpec iv;
+   
+   private Timestamps ts;
+   private Hash h;
+   private Crypto crypto;
 
    private FileOperations fo = new FileOperations();
    
@@ -46,6 +28,9 @@ public class Unlock extends Thread {
       this.currentUser = currentUser;
       this.iv = iv;
       this.fileKey = fileKey;
+      this.h = new Hash();
+      this.ts = new Timestamps();
+      this.crypto = new Crypto();
     }
 
    public void run() {
@@ -141,11 +126,11 @@ public class Unlock extends Thread {
    }
    
    public void encryptAndSendNonce(String nonce, DataOutputStream out) throws Exception{
-      byte[] encryptedNonce = encryptWithSessionKey(nonce, sessionKey);
+      byte[] encryptedNonce = crypto.encryptWithSessionKey(nonce, sessionKey);
       String encryptedNonceString = Base64.getMimeEncoder().encodeToString(encryptedNonce);
-      long timestamp = generateTimeStamp();
+      long timestamp = ts.generateTimeStamp();
 
-      String hash = generateHash(String.valueOf(timestamp));
+      String hash = h.generateHash(String.valueOf(timestamp));
 
       String dataToSend = encryptedNonceString + "." + String.valueOf(timestamp) + "." + hash;
       System.out.println("Sending the nonce...");
@@ -157,102 +142,24 @@ public class Unlock extends Thread {
 
       String[] parts = nonceString.split("\\.");
 
-      String hash = generateHash(parts[1]);
+      String hash = h.generateHash(parts[1]);
 
       if(!parts[2].equals(hash)){
         return 0;
       }
 
+<<<<<<< HEAD
       if(!isWithinRange(Long.valueOf(parts[1]).longValue())){
+=======
+      if(!ts.isWithinRange(Long.valueOf(parts[1]).longValue())){
+>>>>>>> e723007579d2cea802bc4b21f3d9ee787ba577f3
          return 0;
        }
 
       byte[] decodedNonce = Base64.getMimeDecoder().decode(parts[0]);
-      byte[] decryptedNonce = decryptWithSessionKey(decodedNonce, sessionKey);
+      byte[] decryptedNonce = crypto.decryptWithSessionKey(decodedNonce, sessionKey);
       String decryptedNonceString = new String(decryptedNonce, "UTF-8");
       long nonce = Long.valueOf(decryptedNonceString).longValue();
       return nonce;
    }
-   
-
-
-   // ------ Session Key -----------------
-
-   public byte[] encryptWithSessionKey(String nonce, SecretKey key) throws Exception{
-      String ivStr = "Randominitvector";
-      IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
-
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-      cipher.init(Cipher.ENCRYPT_MODE, key, iv);
-      return cipher.doFinal(nonce.getBytes("UTF-8"));
-   }
-
-   public byte[] decryptWithSessionKey(byte[] nonce, SecretKey key) throws Exception{
-      String ivStr = "Randominitvector";
-      IvParameterSpec iv = new IvParameterSpec(ivStr.getBytes());
-
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-      cipher.init(Cipher.DECRYPT_MODE, key, iv);
-      return cipher.doFinal(nonce);
-   }
-
-   public SecretKey generateSessionKey() throws Exception{
-      KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-      keyGen.init(128);
-      return keyGen.generateKey();
-   }
-
-   // -------------------------------------
-
-   // ------ Timestamps -----------------
-   public long generateTimeStamp() throws Exception{
-
-        final CountDownLatch latch = new CountDownLatch(1);
-        final String[] timeStamp = new String[1];
-
-        new Thread()
-        {
-            public void run() {
-                try {
-                    URL obj = new URL("http://www.google.pt");
-                    URLConnection conn = obj.openConnection();
-
-                    Map<String, List<String>> map = conn.getHeaderFields();
-
-                    List<String> timeList = map.get("Date");
-                    String time = timeList.get(0).split(",")[1].replaceFirst(" ", "");
-
-                    timeStamp[0] = time;
-                    latch.countDown();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-        latch.await();
-
-        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z");
-        Date date = sdf.parse(timeStamp[0]);
-
-        return date.getTime();
-   }
-
-
-      public boolean isWithinRange(long receivedDate) throws Exception{
-        long time = generateTimeStamp();
-
-        if(time >= receivedDate && time <= receivedDate+10000)
-           return true;
-
-        return false;
-      }
-
-     public String generateHash(String stringToEncrypt) throws Exception{
-        MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-        messageDigest.reset();
-        messageDigest.update(stringToEncrypt.getBytes("utf8"));
-        String encrypted = String.format("%040x", new BigInteger(1, messageDigest.digest()));
-        return encrypted;
-      }
-
 }

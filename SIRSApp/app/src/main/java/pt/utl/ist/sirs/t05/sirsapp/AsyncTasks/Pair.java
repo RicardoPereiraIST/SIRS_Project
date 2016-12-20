@@ -3,11 +3,9 @@ package pt.utl.ist.sirs.t05.sirsapp.AsyncTasks;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.net.Socket;

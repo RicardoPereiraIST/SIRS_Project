@@ -1,8 +1,5 @@
 package pt.utl.ist.sirs.t05.sirsapp.Crypto;
 
-import android.util.Base64;
-import android.util.Log;
-
 import java.math.BigInteger;
 import java.security.MessageDigest;
 
